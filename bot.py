@@ -1,13 +1,14 @@
+from telegram import Update
 from telegram.ext import Updater, CommandHandler
 
 
 def start(update, context):
 
-    update.message.reply_text('Hola, Humano!')
+    update.message.reply_text('Hola,Bienvenido! \nSoy un bot para una Agencia de Viajes')
 
 if __name__== '__main__':
 
-    updater = Updater(token='1595242339:AAFfNxwj3JB108952Oo1jO6VcKmKpYIDURk',use_context=True)
+    updater = Updater(token='1595242339:AAFfNxwj3JB108952Oo1jO6VcKmKpYIDURk', use_context=True)
 
     dp = updater.dispatcher 
 
