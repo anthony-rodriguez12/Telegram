@@ -124,10 +124,10 @@ def bio(update: Update, context: CallbackContext) -> int:
     Info.append(Loca[0])
     Info.append(Biog[0])
 
-    logger.info(Gene[0])
-    logger.info(Foto[0])
-    logger.info(Loca[0])
-    logger.info(Biog[0])
+#    logger.info(Gene[0])
+#    logger.info(Foto[0])
+#    logger.info(Loca[0])
+#    logger.info(Biog[0])
 
     return SHOW
 
@@ -145,8 +145,9 @@ def cancel(update: Update, context: CallbackContext) -> int:
 def show(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     logger.info("El resumen de %s:", user.first_name)
-    update.message.reply_text('\nEl Genero es:%s\n La photo es: %s \n La dirección es: %s \n La Bio es %s',Info[0],Info[1],Info[2],Info[3])
-    logger.info("Se puclico toda la información anterior")
+    #update.message.reply_text('\nEl Genero es:%s\n La photo es: %s \n La dirección es: %s \n La Bio es %s',Info[0],Info[1],Info[2],Info[3])
+    update.message.reply_text('todo bien')
+    logger.info("Se publico toda la información anterior")
 
     return ConversationHandler.END
 
@@ -158,7 +159,7 @@ def main() -> None:
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
 
-    # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
+    # Add conversation handler with the states GENDER, PHOTO, LOCATION , BIO and SHOW
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
@@ -168,7 +169,7 @@ def main() -> None:
                 MessageHandler(Filters.location, location),
                 CommandHandler('skip', skip_location),
             ],
-            BIO: [MessageHandler(Filters.text,bio)],
+            BIO: [MessageHandler(Filters.text,bio), CommandHandler('show', show)],
             SHOW: [MessageHandler(Filters.text & ~Filters.command, show)],
         },
         fallbacks=[CommandHandler('cancel', cancel)],
