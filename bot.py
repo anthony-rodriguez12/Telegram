@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
 reply_keyboard = [
-    ['Age', 'Favourite colour'],
+    ['Nombre','Age', 'Color favorito'],
     ['Number of siblings', 'Something else...'],
     ['Done'],
 ]
@@ -55,8 +55,8 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 
 def start(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
-        "Hi! My name is Doctor Botter. I will hold a more complex conversation with you. "
-        "Why don't you tell me something about yourself?",
+        "¡Hola! Mi nombre es Doctor Botter. Voy a mantener una conversación más compleja con usted."
+        "¿Por qué no me cuentas algo sobre ti?",
         reply_markup=markup,
     )
 
@@ -66,14 +66,14 @@ def start(update: Update, context: CallbackContext) -> int:
 def regular_choice(update: Update, context: CallbackContext) -> int:
     text = update.message.text
     context.user_data['choice'] = text
-    update.message.reply_text(f'Your {text.lower()}? Yes, I would love to hear about that!')
+    update.message.reply_text(f'Tu {text.lower()}? Sí, me encantaría escuchar eso!.')
 
     return TYPING_REPLY
 
 
 def custom_choice(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
-        'Alright, please send me the category first, ' 'for example "Most impressive skill"'
+        'Muy bien, por favor, envíenme primero la categoría,' 'por ejemplo "La habilidad más impresionante"'
     )
 
     return TYPING_CHOICE
@@ -87,9 +87,9 @@ def received_information(update: Update, context: CallbackContext) -> int:
     del user_data['choice']
 
     update.message.reply_text(
-        "Neat! Just so you know, this is what you already told me:"
-        f"{facts_to_str(user_data)} You can tell me more, or change your opinion"
-        " on something.",
+        "¡Genial! Para que sepas, esto es lo que ya me has dicho:"
+        f"{facts_to_str(user_data)} Puedes decirme más, o cambiar tu opinión"
+        " Sobre algo.",
         reply_markup=markup,
     )
 
@@ -102,7 +102,7 @@ def done(update: Update, context: CallbackContext) -> int:
         del user_data['choice']
 
     update.message.reply_text(
-        f"I learned these facts about you: {facts_to_str(user_data)} Until next time!"
+        f"Me he enterado de estos datos sobre ti: {facts_to_str(user_data)} ¡Hasta la próxima vez!"
     )
 
     user_data.clear()
@@ -122,7 +122,7 @@ def main() -> None:
         states={
             CHOOSING: [
                 MessageHandler(
-                    Filters.regex('^(Age|Favourite colour|Number of siblings)$'), regular_choice
+                    Filters.regex('^(Nombre|Age|Color favorito|Number of siblings)$'), regular_choice
                 ),
                 MessageHandler(Filters.regex('^Something else...$'), custom_choice),
             ],
@@ -146,9 +146,7 @@ def main() -> None:
     # Start the Bot
     updater.start_polling()
 
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling() is non-blocking and will stop the bot gracefully.
+
     updater.idle()
 
 
