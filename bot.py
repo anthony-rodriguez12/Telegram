@@ -94,6 +94,7 @@ def custom_choice(update: Update, context: CallbackContext) -> int:
 
 
 def received_information(update: Update, context: CallbackContext) -> int:
+    dic = cargar_datos()
     user_data = context.user_data
     text = update.message.text
     category = user_data['choice']
@@ -103,7 +104,7 @@ def received_information(update: Update, context: CallbackContext) -> int:
     logger.info("Esto es User_data adentro de dict: %s", facts_to_str(user_data))
     logger.info("Esto es User_data no se por que no funciona")
     guardar_datos(user_data)
-
+    
     update.message.reply_text(
         "¡Genial! Para que sepas, esto es lo que ya me has dicho:"
         f"{facts_to_str(user_data)} Puedes decirme más, o cambiar tu opinión"
@@ -134,7 +135,6 @@ def main() -> None:
     # Create the Updater and pass it your bot's token.
     updater = Updater("1595242339:AAFfNxwj3JB108952Oo1jO6VcKmKpYIDURk")
 
-    dic = cargar_datos()
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
 
