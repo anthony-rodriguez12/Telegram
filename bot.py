@@ -45,6 +45,18 @@ reply_keyboard = [
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
+def cargar_datos():
+    try:
+        with open("traducciones.dat", "rb") as f:
+            return pickle.load(f)
+    except (OSError, IOError) as e:
+        return dict()
+
+
+def guardar_datos(dic):
+    with open("traducciones.dat", "wb") as f:
+        pickle.dump(dic, f)
+
 
 def facts_to_str(user_data: Dict[str, str]) -> str:
     facts = list()
@@ -115,22 +127,13 @@ def done(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
-def cargar_datos():
-    try:
-        with open("traducciones.dat", "rb") as f:
-            return pickle.load(f)
-    except (OSError, IOError) as e:
-        return dict()
 
-
-def guardar_datos(dic):
-    with open("traducciones.dat", "wb") as f:
-        pickle.dump(dic, f)
 
 
 def main() -> None:
     # Create the Updater and pass it your bot's token.
     updater = Updater("1595242339:AAFfNxwj3JB108952Oo1jO6VcKmKpYIDURk")
+
     dic = cargar_datos()
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
