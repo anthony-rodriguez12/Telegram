@@ -15,7 +15,7 @@ bot.
 """
 
 import logging
-import pickle
+import numpy as np
 
 from typing import Dict
 
@@ -58,7 +58,6 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 
 
 def start(update: Update, context: CallbackContext) -> int:
-    user_data = cargar_datos()
     update.message.reply_text(
         
         "!Bienvenido! Esto es SkytravelApp"
@@ -86,16 +85,17 @@ def custom_choice(update: Update, context: CallbackContext) -> int:
 
 
 def received_information(update: Update, context: CallbackContext) -> int:
-    user_data = cargar_datos()
+    
     user_data = context.user_data
     text = update.message.text
     category = user_data['choice']
     user_data[category] = text
     del user_data['choice']
-    
+    np.save('my_file.npy', user_data) 
+
+
     logger.info("Esto es User_data adentro de dict: %s", facts_to_str(user_data))
     
-    guardar_datos(user_data)
 
     update.message.reply_text(
         "¡Genial! Para que sepas, esto es lo que ya me has dicho:"
@@ -107,26 +107,15 @@ def received_information(update: Update, context: CallbackContext) -> int:
     return CHOOSING
 
 
-def cargar_datos():
-    try:
-        with open("traducciones.dat", "rb") as f:
-            logger.info("Esto es Cargar Datos funciona") 
-            return pickle.load(f)
-    except (OSError, IOError) as e:
-        logger.info("Esto es Cargar Datos no se por que no funciona") 
-        return dict()
 
-
-def guardar_datos(dic):
-    with open("traducciones.dat", "wb") as f:
-        pickle.dump(dic, f)
 
 
 def done(update: Update, context: CallbackContext) -> int:
+    #user_data = np.load('my_file.npy').item()
+
     user_data = context.user_data
     if 'choice' in user_data:
         del user_data['choice']
-
     update.message.reply_text(
         f"Me he enterado de estos datos sobre ti: {facts_to_str(user_data)} ¡Hasta la próxima vez!"
     )
