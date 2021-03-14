@@ -55,8 +55,8 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 
 def start(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
-        "¡Hola! Mi nombre es Doctor Botter. Voy a mantener una conversación más compleja con usted."
-        "¿Por qué no me cuentas algo sobre ti?",
+        "!Bienvenido! Esto es SkytravelApp"
+        "¿Que puedo hacer por ti?",
         reply_markup=markup,
     )
 
@@ -85,6 +85,8 @@ def received_information(update: Update, context: CallbackContext) -> int:
     category = user_data['choice']
     user_data[category] = text
     del user_data['choice']
+    logger.info("Esto es User_data %s", facts_to_str(user_data))
+    logger.info("Esto es User_data no se por que no funciona")
 
     update.message.reply_text(
         "¡Genial! Para que sepas, esto es lo que ya me has dicho:"
