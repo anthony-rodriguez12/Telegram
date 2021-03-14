@@ -15,6 +15,8 @@ bot.
 """
 
 import logging
+import pickle
+
 from typing import Dict
 
 from telegram import ReplyKeyboardMarkup, Update
@@ -85,8 +87,10 @@ def received_information(update: Update, context: CallbackContext) -> int:
     category = user_data['choice']
     user_data[category] = text
     del user_data['choice']
-    logger.info("Esto es User_data %s", facts_to_str(user_data))
+    
+    logger.info("Esto es User_data adentro de dict: %s", facts_to_str(user_data))
     logger.info("Esto es User_data no se por que no funciona")
+    guardar_datos(user_data)
 
     update.message.reply_text(
         "¡Genial! Para que sepas, esto es lo que ya me has dicho:"
@@ -111,10 +115,23 @@ def done(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
+def cargar_datos():
+    try:
+        with open("traducciones.dat", "rb") as f:
+            return pickle.load(f)
+    except (OSError, IOError) as e:
+        return dict()
+
+
+def guardar_datos(dic):
+    with open("traducciones.dat", "wb") as f:
+        pickle.dump(dic, f)
+
+
 def main() -> None:
     # Create the Updater and pass it your bot's token.
     updater = Updater("1595242339:AAFfNxwj3JB108952Oo1jO6VcKmKpYIDURk")
-
+    dic = cargar_datos()
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
 
