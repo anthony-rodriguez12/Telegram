@@ -58,22 +58,26 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 
 
 def start(update: Update, context: CallbackContext) -> int:
-    user_data = cargar_datos()
-    update.message.reply_text(
+    try:
+        user_data = cargar_datos()    
         
+    except (OSError, IOError) as e:
+        logger.info("Cargar los datos") 
+         
+    update.message.reply_text(
         "!Bienvenido! Esto es SkytravelApp"
         "¿Que puedo hacer por ti?",
         reply_markup=markup,
     )
-
     return CHOOSING
 
 
 def regular_choice(update: Update, context: CallbackContext) -> int:
     text = update.message.text
+    logger.info("Estos son los User_data: %s", text)
     context.user_data['choice'] = text
+    logger.info("Estos son los User_data['choice']: %s", text)
     update.message.reply_text(f'Tu {text.lower()}? Sí, me encantaría escuchar eso!.')
-
     return TYPING_REPLY
 
 
@@ -81,20 +85,22 @@ def custom_choice(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
         'Muy bien, por favor, envíenme primero la categoría,' 'por ejemplo "La habilidad más impresionante"'
     )
+    logger.info("Estos son los User_data en custom choice: %s", text)
 
     return TYPING_CHOICE
 
 
 def received_information(update: Update, context: CallbackContext) -> int:
     user_data = cargar_datos()
+    logger.info("Estos son los User_data: %s", facts_to_str(user_data))
     user_data = context.user_data
+    logger.info("Estos son los User_data: %s", facts_to_str(user_data))
     text = update.message.text
     category = user_data['choice']
     user_data[category] = text
     del user_data['choice']
     
-    logger.info("Esto es User_data adentro de dict: %s", facts_to_str(user_data))
-    
+    logger.info("Estos son los User_data: %s", facts_to_str(user_data))
     guardar_datos(user_data)
 
     update.message.reply_text(
@@ -113,7 +119,7 @@ def cargar_datos():
             logger.info("Esto es Cargar Datos funciona") 
             return pickle.load(f)
     except (OSError, IOError) as e:
-        logger.info("Esto es Cargar Datos no se por que no funciona") 
+        logger.info("Esto es Cargar Datos no existe archivo") 
         return dict()
 
 
@@ -123,15 +129,17 @@ def guardar_datos(dic):
 
 
 def done(update: Update, context: CallbackContext) -> int:
-    user_data = context.user_data
+    try:
+        user_data = cargar_datos()
+    except (OSError, IOError) as e:
+        user_data = context.user_data     
     if 'choice' in user_data:
         del user_data['choice']
 
     update.message.reply_text(
         f"Me he enterado de estos datos sobre ti: {facts_to_str(user_data)} ¡Hasta la próxima vez!"
     )
-
-    user_data.clear()
+    #user_data.clear()
     return ConversationHandler.END
 
 
