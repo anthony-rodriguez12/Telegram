@@ -45,17 +45,7 @@ reply_keyboard = [
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
-def cargar_datos():
-    try:
-        with open("traducciones.dat", "rb") as f:
-            return pickle.load(f)
-    except (OSError, IOError) as e:
-        return dict()
 
-
-def guardar_datos(dic):
-    with open("traducciones.dat", "wb") as f:
-        pickle.dump(dic, f)
 
 
 def facts_to_str(user_data: Dict[str, str]) -> str:
@@ -68,7 +58,9 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 
 
 def start(update: Update, context: CallbackContext) -> int:
+    user_data = cargar_datos()
     update.message.reply_text(
+        
         "!Bienvenido! Esto es SkytravelApp"
         "¿Que puedo hacer por ti?",
         reply_markup=markup,
@@ -94,7 +86,7 @@ def custom_choice(update: Update, context: CallbackContext) -> int:
 
 
 def received_information(update: Update, context: CallbackContext) -> int:
-    dic = cargar_datos()
+    user_data = cargar_datos()
     user_data = context.user_data
     text = update.message.text
     category = user_data['choice']
@@ -102,9 +94,9 @@ def received_information(update: Update, context: CallbackContext) -> int:
     del user_data['choice']
     
     logger.info("Esto es User_data adentro de dict: %s", facts_to_str(user_data))
-    logger.info("Esto es User_data no se por que no funciona")
-    guardar_datos(user_data)
     
+    guardar_datos(user_data)
+
     update.message.reply_text(
         "¡Genial! Para que sepas, esto es lo que ya me has dicho:"
         f"{facts_to_str(user_data)} Puedes decirme más, o cambiar tu opinión"
@@ -113,6 +105,21 @@ def received_information(update: Update, context: CallbackContext) -> int:
     )
 
     return CHOOSING
+
+
+def cargar_datos():
+    try:
+        with open("traducciones.dat", "rb") as f:
+            logger.info("Esto es Cargar Datos funciona") 
+            return pickle.load(f)
+    except (OSError, IOError) as e:
+        logger.info("Esto es Cargar Datos no se por que no funciona") 
+        return dict()
+
+
+def guardar_datos(dic):
+    with open("traducciones.dat", "wb") as f:
+        pickle.dump(dic, f)
 
 
 def done(update: Update, context: CallbackContext) -> int:
@@ -128,10 +135,8 @@ def done(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
-
-
-
 def main() -> None:
+    
     # Create the Updater and pass it your bot's token.
     updater = Updater("1595242339:AAFfNxwj3JB108952Oo1jO6VcKmKpYIDURk")
 
