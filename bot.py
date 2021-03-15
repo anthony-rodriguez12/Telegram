@@ -12,7 +12,9 @@ from cfg import TOKEN
 def start(update, context):
     print(update.message)
 
-    update.message.replay_text(f"Holis! Esto es SkyTravelAPP!")
+    #update.message.replay_text(f"Hola! Esto es SkyTravelAPP!")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
+    update.message.reply_text('TOdo bien')
 
 def main():
     updater = Updater(TOKEN, use_context=True)
