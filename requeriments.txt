@@ -1,0 +1,5 @@
+Pandas
+Python-telegram-bot
+python-decouple
+pspread
+oauth2client
