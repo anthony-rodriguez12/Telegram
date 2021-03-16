@@ -65,6 +65,23 @@ def regular_choice(update: Update, context: CallbackContext) -> int:
 
     return TYPING_REPLY
 
+def buscar_choice(update: Update, context: CallbackContext) -> int:
+    logger.info("Ingresamos a buscar choice")
+    text = update.message.text
+    context.user_data['choice'] = text
+    update.message.reply_text(f'Buscaremos coincidencias con {text.lower()} en los campos mencionados anteriormente.')
+
+    vuelos = gsconn.Buscar(text)
+    logger.info("Se realizo el Buscar(text)")
+    df = vuelos[0]
+    x = vuelos[1]
+    update.message.reply_text(f"{df}",reply_markup=markup)
+    #df,x
+    logger.info(f"comprobando df:{df}")
+    logger.info(f"comprobando x:{x}")
+    return TYPING_REPLY
+
+
 
 def custom_choice(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
@@ -141,6 +158,9 @@ def main() -> None:
             TYPING_CHOICE: [
                 MessageHandler(
                     Filters.text & ~(Filters.command | Filters.regex('^Done$')), regular_choice
+                ),
+                MessageHandler(
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), buscar_choice
                 ),
                 
             ],

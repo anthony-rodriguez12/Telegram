@@ -40,9 +40,8 @@ class gsheet_helper:
        
         return Completo
 
-    def Buscar(self):
-        sheetComp = self.gsheet.worksheet(CLIENT_SHEET)
-        name = "Canadá"
+    def Buscar(self, name):
+        sheetComp = self.gsheet.worksheet(CLIENT_SHEET) 
         #cell = sheetComp.find(name)
         cell_list = sheetComp.findall(name)
         x = len(cell_list)
@@ -56,7 +55,8 @@ class gsheet_helper:
         #val = sheetComp.cell(cell.row, cell.col).value  para conseguir el nombre de una CELL
         df = pd.DataFrame(L, columns=['Id:','Avion:','Asientos-Libre:','Asient-Ocupa:'])
         print(df)
-
+        
+        return df,x
         
 
 
@@ -78,7 +78,7 @@ class gsheet_helper:
         #sheet.append_row([element for element in New_Avi.values()])
 
 if __name__ == "__main__":
-    print(gsheet_helper().getlistado())
-    print(gsheet_helper().Buscar())
-    print(gsheet_helper().store_user("Ecuador"))
+    #print(gsheet_helper().getlistado())
+    print(gsheet_helper().Buscar("Argentina"))
+    #print(gsheet_helper().store_user("Ecuador"))
     
