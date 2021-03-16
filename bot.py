@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
 reply_keyboard = [
-    ['Nombre','Age', 'Color favorito'],
-    ['Number of siblings', 'Something else...'],
+    ['Nombre','Age', 'Color favorito','Listado'],
+    ['Number of siblings', 'Buscar'],
     ['start','Done'],
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -61,14 +61,14 @@ def start(update: Update, context: CallbackContext) -> int:
 def regular_choice(update: Update, context: CallbackContext) -> int:
     text = update.message.text
     context.user_data['choice'] = text
-    update.message.reply_text(f'Tu {text.lower()}? Sí, me encantaría escuchar eso!.')
+    update.message.reply_text(f'Buscaremos coincidencias con {text.lower()} en los campos mencionados anteriormente.')
 
     return TYPING_REPLY
 
 
 def custom_choice(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
-        'Muy bien, por favor, envíenme primero la categoría,' 'por ejemplo "La habilidad más impresionante"'
+        '¿Deseas Buscar? No hay problema!, ' 'Puedes buscar ingresando alguno de los siguientes datos:\nPais de Destino/Origen, código IATA, Nombre de Aeropuerto y Ciudad o País \nRecuerda solo ingresar uno de estos datos por búsqueda.'
     )
 
     return TYPING_CHOICE
@@ -81,7 +81,6 @@ def received_information(update: Update, context: CallbackContext) -> int:
     category = user_data['choice']
     user_data[category] = text
     del user_data['choice']
-    np.save('my_file.npy', user_data) 
 
     logger.info("Esto es User_data adentro de dict: %s", facts_to_str(user_data))
     
@@ -95,15 +94,18 @@ def received_information(update: Update, context: CallbackContext) -> int:
     return CHOOSING
 
 
-def listadoV(update, context):
+def listadoV(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text("Este es el Listado Actualizado de los vuelos:")
     logger.info("Logramos entrar en ListadoV")
     vuelos = gsconn.getlistado()
     logger.info("Se realizo el Vuelos")
-    update.message.reply_text(f"{vuelos}")
+    update.message.reply_text(f"{vuelos}",reply_markup=markup)
+    
+    return CHOOSING
+
 
 
 def done(update: Update, context: CallbackContext) -> int:
-    #user_data = np.load('my_file.npy').item()
 
     user_data = context.user_data
     if 'choice' in user_data:
@@ -112,14 +114,13 @@ def done(update: Update, context: CallbackContext) -> int:
         f"Me he enterado de estos datos sobre ti: {facts_to_str(user_data)} ¡Hasta la próxima vez!"
     )
 
-    user_data.clear()
     return ConversationHandler.END
 
 
 def main() -> None:
     
     # Create the Updater and pass it your bot's token.
-    updater = Updater("1595242339:AAFfNxwj3JB108952Oo1jO6VcKmKpYIDURk")
+    updater = Updater(TOKEN)
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
@@ -133,15 +134,15 @@ def main() -> None:
                 MessageHandler(
                     Filters.regex('^(Nombre|Age|Color favorito|Number of siblings)$'), regular_choice
                 ),
-                MessageHandler(Filters.regex('^Something else...$'), custom_choice),
+                MessageHandler(Filters.regex('^Buscar$'), custom_choice),
+                MessageHandler(Filters.regex('^Listado$'), listadoV),
+
             ],
             TYPING_CHOICE: [
                 MessageHandler(
                     Filters.text & ~(Filters.command | Filters.regex('^Done$')), regular_choice
                 ),
-                MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex('^Listado$')), listadoV
-                )
+                
             ],
             TYPING_REPLY: [
                 MessageHandler(

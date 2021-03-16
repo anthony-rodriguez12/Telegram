@@ -29,24 +29,49 @@ class gsheet_helper:
         sheetPart = self.gsheet.worksheet(ITEM_SHEET)
         Parte = pd.DataFrame(sheetPart.get('A1:B11'))
         sheetComp = self.gsheet.worksheet(CLIENT_SHEET)
-        Completo = pd.DataFrame(sheetComp.get_all_records(),index=['','','','','','',''])
-        #Vuelos = pd.DataFrame(sheet.get('A4:B14'))
-        #p = pd.DataFrame(sheet.get('A1:K2'))
+        #sheetComp.get_all_records(CLIENT_SHEET) para traer todas las tablas
+        #sheetPart.get('A1:B11')
+        Completo = pd.DataFrame({"|Avion|":sheetComp.get('A2:A8'),
+                                 "|IATA|":sheetComp.get('B2:B8'),
+                                 "|Pais-Origen|":sheetComp.get('C2:C8'),
+                                 "|Pais-Destino|":sheetComp.get('D2:D8')
+                                })
+        Completo.index.name = 'Id'
+       
         return Completo
+
+    def Buscar(self):
+        sheetComp = self.gsheet.worksheet(CLIENT_SHEET)
+        name = "Canadá"
+        #cell = sheetComp.find(name)
+        cell_list = sheetComp.findall(name)
+        x = len(cell_list)
+        print(f"Tenemos {x} Resultados:")
+        L = []
+        for indice in cell_list:
+            cell = indice   
+            values_list = sheetComp.row_values(cell.row)
+            L.append(values_list)
+            
+        #val = sheetComp.cell(cell.row, cell.col).value  para conseguir el nombre de una CELL
+        df = pd.DataFrame(L, columns=['Id:','Avion:','Asientos-Libre:','Asient-Ocupa:'])
+        print(df)
+
+        
+
 
     def store_user(self, New_Avi):
         
-        print(New_Avi)
         sheet = self.gsheet.worksheet(CLIENT_SHEET)
-        items = pd.DataFrame(sheet.get_all_records(),index=['','','','','','',''])
-
+        items = pd.DataFrame(sheet.get_all_records())
+        items.index.name = 'Id'
         lista = pd.DataFrame(items)
-        cond = lista[lista["Aerop - Origen:"] == New_Avi].empty
+        cond = lista[lista["Pais-Origen|"] == New_Avi].empty
         
         if cond:
-            print("El aeropuerto NO esta registrado")
+            print("El pais NO tiene vuelos actualmente")
         else:
-            print("El aeropuerto si existe y es el: %s",New_Avi)
+            print(f"El si existen vuelos al pais:{New_Avi}")
 
         #sheet = self.gsheet.worksheet(CLIENT_SHEET)
         #sheet.add_rows(1)
@@ -54,4 +79,6 @@ class gsheet_helper:
 
 if __name__ == "__main__":
     print(gsheet_helper().getlistado())
+    print(gsheet_helper().Buscar())
+    print(gsheet_helper().store_user("Ecuador"))
     
