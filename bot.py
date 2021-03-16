@@ -1,21 +1,9 @@
-#!/usr/bin/env python
-# pylint: disable=W0613, C0116
-# type: ignore[union-attr]
-# This program is dedicated to the public domain under the CC0 license.
-
-"""
-First, a few callback functions are defined. Then, those functions are passed to
-the Dispatcher and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-Usage:
-Example of a bot-user conversation using ConversationHandler.
-Send /start to initiate the conversation.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
-"""
 
 import logging
 import numpy as np
+
+from helper import gsheet_helper
+from cfg import TOKEN    
 
 from typing import Dict
 
@@ -29,6 +17,8 @@ from telegram.ext import (
     CallbackContext,
 )
 
+gsconn = gsheet_helper()
+
 # Enable logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -41,7 +31,7 @@ CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 reply_keyboard = [
     ['Nombre','Age', 'Color favorito'],
     ['Number of siblings', 'Something else...'],
-    ['Done'],
+    ['start','Done'],
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
@@ -58,9 +48,9 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 
 
 def start(update: Update, context: CallbackContext) -> int:
+    name = update.message.from_user.username
     update.message.reply_text(
-        
-        "!Bienvenido! Esto es SkytravelApp"
+        f"!Bienvenido {name}! Esto es SkytravelApp\n"
         "¿Que puedo hacer por ti?",
         reply_markup=markup,
     )
@@ -93,10 +83,8 @@ def received_information(update: Update, context: CallbackContext) -> int:
     del user_data['choice']
     np.save('my_file.npy', user_data) 
 
-
     logger.info("Esto es User_data adentro de dict: %s", facts_to_str(user_data))
     
-
     update.message.reply_text(
         "¡Genial! Para que sepas, esto es lo que ya me has dicho:"
         f"{facts_to_str(user_data)} Puedes decirme más, o cambiar tu opinión"
@@ -107,7 +95,11 @@ def received_information(update: Update, context: CallbackContext) -> int:
     return CHOOSING
 
 
-
+def listadoV(update, context):
+    logger.info("Logramos entrar en ListadoV")
+    vuelos = gsconn.getlistado()
+    logger.info("Se realizo el Vuelos")
+    update.message.reply_text(f"{vuelos}")
 
 
 def done(update: Update, context: CallbackContext) -> int:
@@ -137,6 +129,7 @@ def main() -> None:
         entry_points=[CommandHandler('start', start)],
         states={
             CHOOSING: [
+                MessageHandler(Filters.regex('^start$'), start),
                 MessageHandler(
                     Filters.regex('^(Nombre|Age|Color favorito|Number of siblings)$'), regular_choice
                 ),
@@ -145,6 +138,9 @@ def main() -> None:
             TYPING_CHOICE: [
                 MessageHandler(
                     Filters.text & ~(Filters.command | Filters.regex('^Done$')), regular_choice
+                ),
+                MessageHandler(
+                    Filters.text & ~(Filters.command | Filters.regex('^Listado$')), listadoV
                 )
             ],
             TYPING_REPLY: [
