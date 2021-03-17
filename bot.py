@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
 reply_keyboard = [
-    ['Nombre','Age', 'Color favorito','Listado'],
-    ['Number of siblings', 'Buscar'],
+    ['Ver Vuelo', 'Buscar','Listado'],
+    ['BUY_TICKET', 'BUYRT_TICKET'],
     ['start','Done'],
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -48,6 +48,7 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 
 
 def start(update: Update, context: CallbackContext) -> int:
+    logger.info("Ingresamos a start")
     name = update.message.from_user.username
     update.message.reply_text(
         f"!Bienvenido {name}! Esto es SkytravelApp\n"
@@ -67,28 +68,47 @@ def regular_choice(update: Update, context: CallbackContext) -> int:
 
 def buscar_choice(update: Update, context: CallbackContext) -> int:
     logger.info("Ingresamos a buscar choice")
+
     text = update.message.text
     context.user_data['choice'] = text
-    update.message.reply_text(f'Buscaremos coincidencias con {text.lower()} en los campos mencionados anteriormente.')
+    update.message.reply_text(f'Buscaremos coincidencias con {text.upper()} en los campos mencionados anteriormente.')
 
     vuelos = gsconn.Buscar(text)
     logger.info("Se realizo el Buscar(text)")
-    df = vuelos[0]
-    x = vuelos[1]
-    update.message.reply_text(f"{df}",reply_markup=markup)
-    #df,x
-    logger.info(f"comprobando df:{df}")
-    logger.info(f"comprobando x:{x}")
-    return TYPING_REPLY
+    update.message.reply_text(f"Estos son los Resultados de buscar {text.upper()}:")
+    update.message.reply_text(f"{vuelos}")
+  
+    return CHOOSING
+    
 
+def buscar_choice_vuelo(update: Update, context: CallbackContext) -> int:
+    logger.info("Ingresamos a buscar vuelo")
 
+    text = update.message.text
+    context.user_data['choice'] = text
+    
+    update.message.reply_text(f'Buscaremos el ID: {text} en los registros de vuelos, Porfavor espere.')
+    vuelos = gsconn.Ver_Vuelo(text)
+    logger.info(f"Se realizo el Buscar({text})")
+    update.message.reply_text(f"{vuelos}")
+    
+    update.message.reply_text(f'Losiento escribiste mal el ID: {text} contiene letras, Porfavor vuelva a iniciar con /Ver Vuelo.')
+  
+    return CHOOSING
 
 def custom_choice(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
         '¿Deseas Buscar? No hay problema!, ' 'Puedes buscar ingresando alguno de los siguientes datos:\nPais de Destino/Origen, código IATA, Nombre de Aeropuerto y Ciudad o País \nRecuerda solo ingresar uno de estos datos por búsqueda.'
     )
 
-    return TYPING_CHOICE
+    return buscar_choice
+
+def custom_choiceV(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text(
+        'Para revisar los detalles de un vuelo,' 'por favor ingresar el "Id" del vuelo que deseas revisar'
+    )
+
+    return buscar_choice_vuelo
 
 
 def received_information(update: Update, context: CallbackContext) -> int:
@@ -115,7 +135,7 @@ def listadoV(update: Update, context: CallbackContext) -> int:
     update.message.reply_text("Este es el Listado Actualizado de los vuelos:")
     logger.info("Logramos entrar en ListadoV")
     vuelos = gsconn.getlistado()
-    logger.info("Se realizo el Vuelos")
+    logger.info("Se mostro el listado de vuelos")
     update.message.reply_text(f"{vuelos}",reply_markup=markup)
     
     return CHOOSING
@@ -153,16 +173,18 @@ def main() -> None:
                 ),
                 MessageHandler(Filters.regex('^Buscar$'), custom_choice),
                 MessageHandler(Filters.regex('^Listado$'), listadoV),
-
-            ],
+                MessageHandler(Filters.regex('^Ver Vuelo$'), custom_choiceV),
+            ],  
             TYPING_CHOICE: [
-                MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), regular_choice
-                ),
                 MessageHandler(
                     Filters.text & ~(Filters.command | Filters.regex('^Done$')), buscar_choice
                 ),
-                
+                 MessageHandler(
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), buscar_choice_vuelo
+                ),
+               # MessageHandler(
+               #    Filters.text & ~(Filters.command | Filters.regex('^Done$')), regular_choice
+               # ),
             ],
             TYPING_REPLY: [
                 MessageHandler(

@@ -26,44 +26,63 @@ class gsheet_helper:
 
 
     def getlistado(self):
-        sheetPart = self.gsheet.worksheet(ITEM_SHEET)
-        Parte = pd.DataFrame(sheetPart.get('A1:B11'))
         sheetComp = self.gsheet.worksheet(CLIENT_SHEET)
         #sheetComp.get_all_records(CLIENT_SHEET) para traer todas las tablas
         #sheetPart.get('A1:B11')
-        Completo = pd.DataFrame({"|Avion|":sheetComp.get('A2:A8'),
-                                 "|IATA|":sheetComp.get('B2:B8'),
-                                 "|Pais-Origen|":sheetComp.get('C2:C8'),
-                                 "|Pais-Destino|":sheetComp.get('D2:D8')
+        Completo = pd.DataFrame({"|ID|":sheetComp.get('A2:A8'),
+                                 "|Avion|":sheetComp.get('B2:B8'),
+                                 "|IATA|":sheetComp.get('C2:C8'),
+                                 "|Pais-Origen|":sheetComp.get('D2:D8'),
+                                 "|Pais-Destino|":sheetComp.get('E2:E8')
                                 })
-        Completo.index.name = 'Id'
        
         return Completo
 
     def Buscar(self, name):
         sheetComp = self.gsheet.worksheet(CLIENT_SHEET) 
-        #cell = sheetComp.find(name)
-        cell_list = sheetComp.findall(name)
-        x = len(cell_list)
-        print(f"Tenemos {x} Resultados:")
-        L = []
-        for indice in cell_list:
-            cell = indice   
-            values_list = sheetComp.row_values(cell.row)
-            L.append(values_list)
+        try:
+            cell_list = sheetComp.findall(name)
+            x = len(cell_list)
+            print(x)
+            print(f"Tenemos {x} Resultados:")
+            L = []
+            for indice in cell_list:
+                cell = indice   
+                values_list = sheetComp.row_values(cell.row)
+                L.append(values_list)
+            #val = sheetComp.cell(cell.row, cell.col).value  para conseguir el nombre de una CELL
+            df = pd.DataFrame(L, columns=['|ID|','Avion|','IATA|','Pais-Origen|','Pais-Des|','Aerop - Origen|','Aerop - Destino|'])
+        except:
+            df = "Losiento No hay Coincidencias"
+        
+        return df
+
+    def Ver_Vuelo(self, name): 
+        sheetView = self.gsheet.worksheet(ITEM_SHEET)
+        try:
+            cell = sheetView.find(name)
             
-        #val = sheetComp.cell(cell.row, cell.col).value  para conseguir el nombre de una CELL
-        df = pd.DataFrame(L, columns=['Id:','Avion:','Asientos-Libre:','Asient-Ocupa:'])
-        print(df)
+            print(f"Resultados del ID:{name}")
+            Col1 = {
+            'A1': "A1",'B1': "C1", 'C1': "E1",'D1': "G1",
+            'E1': "I1", 'F1': "K1", 'G1': "M1"}
+            Col2 ={
+            'A1': "B11", 'B1': "D11",  'C1': "F11",
+            'D1': "H11",'E1': "J11", 'F1': "L11", 'G1': "N11"}
+            range = Col1.get(name)+':'+Col2.get(name)
         
-        return df,x
+            #val = sheetComp.cell(cell.row, cell.col).value  para conseguir el nombre de una CELL
+            df = pd.DataFrame(sheetView.get(range))
+        except:
+            df = f"Losiento No hay ninguna Id con el nombre de: {name}"
         
+        return df
 
 
     def store_user(self, New_Avi):
         
         sheet = self.gsheet.worksheet(CLIENT_SHEET)
-        items = pd.DataFrame(sheet.get_all_records())
+        items = pd.DataFrame(sheet.get_all_records(),index=['','','','','','',])
         items.index.name = 'Id'
         lista = pd.DataFrame(items)
         cond = lista[lista["Pais-Origen|"] == New_Avi].empty
@@ -81,4 +100,5 @@ if __name__ == "__main__":
     #print(gsheet_helper().getlistado())
     print(gsheet_helper().Buscar("Argentina"))
     #print(gsheet_helper().store_user("Ecuador"))
+    print(gsheet_helper().Ver_Vuelo('A1'))
     
