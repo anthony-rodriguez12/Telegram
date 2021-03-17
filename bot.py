@@ -38,7 +38,6 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 
 
-
 def facts_to_str(user_data: Dict[str, str]) -> str:
     facts = list()
 
@@ -80,14 +79,14 @@ def buscar_choice(update: Update, context: CallbackContext) -> int:
     logger.info("Se realizo el Buscar(text)")
     update.message.reply_text(f"Estos son los Resultados de buscar {text}:")
     update.message.reply_text(f"{vuelos}")
-    update.message.reply_text(f"Estos son los Resultados de buscar {text}:")
+    update.message.reply_text(f'Escriba "OK" para continuar')
   
     return RETORNO
 
 def Volver_Retorno(update: Update, context: CallbackContext) -> int:
     logger.info("Logramos Ingresamos a Volver_Retorno")
     name = update.message.from_user.username
-    update.message.reply_text(f"Listo {name}!, esos fueron los resultados,¿Que deseas hacer ahora?",reply_markup=markup,)
+    update.message.reply_text(f"Listo {name}!,\n¿Que deseas hacer ahora?",reply_markup=markup,)
 
     return CHOOSING
 
@@ -103,15 +102,20 @@ def buscar_choice_vuelo(update: Update, context: CallbackContext) -> int:
     logger.info(f"Se realizo el Buscar({text})")
     update.message.reply_text(f"{vuelos}")
     
-    update.message.reply_text(f'Porfavor vuelva a iniciar ¿Si?')
-  
+    update.message.reply_text(f'Porfavor vuelva a iniciar si desea revisar otro vuelo')
+    update.message.reply_text(f'Escriba Ok para continuar')
     return RETORNO
 
 def custom_choice(update: Update, context: CallbackContext) -> int:
     logger.info("Logramos entrar en cusmtom_choice de Buscar")
-
     update.message.reply_text(
-        '¿Deseas Buscar? No hay problema!, ' 'Puedes buscar ingresando alguno de los siguientes datos:\nPais de Destino/Origen, código IATA, Nombre de Aeropuerto y Ciudad o País \nRecuerda solo ingresar uno de estos datos por búsqueda.'
+        '¿Deseas Buscar? No hay problema!'
+    )
+    update.message.reply_text(
+        'Puedes buscar ingresando alguno de los siguientes datos:\n Pais de Destino/Origen\n Código IATA\n Nombre de Aeropuerto\n Ciudad o País'
+    )
+    update.message.reply_text(
+        'Recuerda solo ingresar uno de estos datos por búsqueda.'
     )
 
     return BUSCAR
@@ -154,14 +158,11 @@ def listadoV(update: Update, context: CallbackContext) -> int:
     return CHOOSING
 
 
-
 def done(update: Update, context: CallbackContext) -> int:
+    nombre = update.message.from_user.username
 
-    user_data = context.user_data
-    if 'choice' in user_data:
-        del user_data['choice']
     update.message.reply_text(
-        f"Me he enterado de estos datos sobre ti: {facts_to_str(user_data)} ¡Hasta la próxima vez!"
+        f"Muchas Gracias {nombre} vuelva pronto esperamos haverle servido de ayuda \n ¡¡Hasta la próxima vez!!"
     )
 
     return ConversationHandler.END
@@ -183,7 +184,7 @@ def main() -> None:
                 MessageHandler(Filters.regex('^start$'), start),
                 MessageHandler(
                     #Filters.text & ~Filters.command, regular_choice
-                    Filters.regex('^(Nombre|Age|Color favorito|Number of siblings)$'), regular_choice
+                    Filters.regex('^(Nombre)$'), regular_choice
                 ),
                 MessageHandler(Filters.regex('^Buscar$'), custom_choice),
                 MessageHandler(Filters.regex('^Listado$'), listadoV),
