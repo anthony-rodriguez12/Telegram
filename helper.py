@@ -6,7 +6,7 @@ from cfg import GDRIVE_SHEET_KEY
 ITEM_SHEET = 'Vuelos'
 CLIENT_SHEET = 'Lista'
 TIKET_SHEET = 'Asientos'
-
+FACTUR_SHEET = 'Factura'
 CREDS_JSON = 'access-key.json'
 
 
@@ -37,7 +37,8 @@ class gsheet_helper:
                                 })
        
         return Completo
-
+    
+    
     def Buscar(self, name):
         sheetComp = self.gsheet.worksheet(CLIENT_SHEET) 
         cell_list = sheetComp.findall(name)
@@ -63,7 +64,7 @@ class gsheet_helper:
         sheetView = self.gsheet.worksheet(ITEM_SHEET)
         try:
             cell = sheetView.find(name)
-            
+            print(cell)
             print(f"Resultados del ID:{name}")
             Col1 = {
             'A1': "A1",'B1': "C1", 'C1': "E1",'D1': "G1",
@@ -80,29 +81,52 @@ class gsheet_helper:
         
         return df
 
-
-    def store_user(self, New_Avi):
+    
+    def Buscar_ID(self, New_Avi):
         
         sheet = self.gsheet.worksheet(CLIENT_SHEET)
-        items = pd.DataFrame(sheet.get_all_records(),index=['','','','','','',])
+        items = pd.DataFrame(sheet.get_all_records(),index=['','','','','','',''])
         items.index.name = 'Id'
         lista = pd.DataFrame(items)
-        cond = lista[lista["Pais-Origen|"] == New_Avi].empty
-        
+        cond = lista[lista["|ID|"] == New_Avi].empty
+
         if cond:
-            print("El pais NO tiene vuelos actualmente")
+            print("El ID NO existe")
+            return "losiento"
         else:
-            print(f"El si existen vuelos al pais:{New_Avi}")
+            print(f"El ID:{New_Avi} si existe")
+            return 'ok'
 
-        #sheet = self.gsheet.worksheet(CLIENT_SHEET)
-        #sheet.add_rows(1)
-        #sheet.append_row([element for element in New_Avi.values()])
-
+    def SaveNube(self, Range, text): 
+        try:
+            Nube = self.gsheet.worksheet(FACTUR_SHEET)
+            Nube.update(Range , text)
+            print(f"Esto es la celda: {Range}")
+            print(f"Este es el contenido: {text}")
+            return 'Se Guardo Bien '
+        except:
+            return 'Algo Fallo'
     
+    def Retornar_ID(self):
+        TheID = self.gsheet.worksheet(FACTUR_SHEET)
+        Value = TheID.get('B1').first()
+        
+        return Value
+
+    def Buscar_Asientos(self, ID):
+        TheID = self.gsheet.worksheet(TIKET_SHEET)
+        Cell = TheID.find(ID)
+        row = Cell.row
+        val = TheID.cell(row, 3).value
+
+        return val
+
 
 if __name__ == "__main__":
     #print(gsheet_helper().getlistado())
-    print(gsheet_helper().Ver_Vuelo("tony"))
+    #print(gsheet_helper().SaveNube('B1','Funciona'))
+    print(gsheet_helper().Buscar_Asientos('A1'))
     #print(gsheet_helper().store_user("Ecuador"))
     #print(gsheet_helper().Ver_Vuelo('A1'))
+    
     

@@ -26,7 +26,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, TYPING_REPLY, TYPING_CHOICE, BUSCAR, VER, RETORNO = range(6)
+CHOOSING, TYPING_REPLY, TYPING_CHOICE, BUSCAR, VER, RETORNO, UBICACION, ANSWER, ID, NOMBRE, CEDULA, FECHA, RESERVA, ASIENTOS = range(14)
 
 reply_keyboard = [
     ['Ver Vuelo', 'Buscar','Listado'],
@@ -157,6 +157,115 @@ def listadoV(update: Update, context: CallbackContext) -> int:
     
     return CHOOSING
 
+def Buy_Ticket(update: Update, context: CallbackContext) -> int:
+    logger.info("Iniciamos el procesos de Reservar un vuelo solo de ida")
+    update.message.reply_text("*****RESERVACIÓN SOLO VUELO DE IDA*****")
+    update.message.reply_text("Para Reservar un vuelo primero dinos, ¿En que aeropuerto de los de la lista te encuentras?")
+    update.message.reply_text("José Joaquín de Olm.\nLas Américas\nToronto\nWashington Dulles\nJosé Joaquín de Olm.")
+    logger.info("Se mostro el contesto la ubicacion")
+    
+    return UBICACION
+
+def ubicacion1(update: Update, context: CallbackContext) -> int:
+    text = update.message.text
+    logger.info(f"Obtubimos Ubicación: {text}")
+    lista = gsconn.Buscar(text)
+    ubi = gsconn.SaveNube('F1',text)
+    logger.info(ubi)
+    logger.info("Se realizaron la lista y el save ubicacion")
+    update.message.reply_text("Listo Se ha Guardado Satisfactoriamente tu respuesta")
+    update.message.reply_text(f"Aqui Estan Todos Los Vuelos del Aeropuerto {text}")
+    update.message.reply_text(f"{lista}")
+    update.message.reply_text("¿Desea realizar una reservación en alguno de los vuelos mostrados?\nPorfavor Responda un Si o un No")
+
+    return ANSWER
+
+
+def answerY(update: Update, context: CallbackContext) -> int:
+    text = update.message.text
+    logger.info(f"Obtubimos un: {text} por respuesta")
+    update.message.reply_text("Listo reservaremos un asiento de los vuelos mostrados para ti")
+    update.message.reply_text("Por favor ingresa el ID del vuelo que deseas" )
+
+    return ID
+
+def TheId(update: Update, context: CallbackContext) -> int:
+    text = update.message.text
+    logger.info(f"Obtubimos el ID: {text}")
+    pas = gsconn.Buscar_ID(text)
+    elID = gsconn.SaveNube('B1',text)
+    logger.info(f"El Estado del ID:{elID}")
+    if pas == 'ok':
+        update.message.reply_text("Listo Se ha Guardado Satisfactoriamente el ID de tu respuesta")
+        update.message.reply_text("Ahora Porfavor Ingresa tus Datos Reales para crear un comprobante de Registro")
+        update.message.reply_text("Como Primer Dato Ingresa tu Nombre Completo\n Ejemplo: Manuel Jose Perez Herrera")
+        return NOMBRE
+
+    else:        
+        update.message.reply_text("Losiento el ID es Incorrecto Vuelve a Ingresarlo")
+        return ID
+ 
+
+def answerN(update: Update, context: CallbackContext) -> int:
+    text = update.message.text
+    logger.info(f"Obtubimos un: {text} por respuesta")
+    update.message.reply_text(f"Respondiste {text}, asi que escoje ¿Que deseas hacer ahrora?",reply_markup=markup)
+
+    return CHOOSING
+
+
+def Regis_Nombre(update: Update, context: CallbackContext) -> int:
+    text = update.message.text
+    logger.info(f"Obtubimos el Nombre: {text}")
+    Nom = gsconn.SaveNube('B2',text)
+    logger.info(Nom)
+    logger.info("Se Guardo el Nombre")
+
+    update.message.reply_text(f"Listo Se ha Guardado Satisfactoriamente tu Nombre como:{text}")
+    update.message.reply_text("Ahora Porfavor Ingresa tu Cédula de Identidad\n Ejemplo: 0987654321")
+    return CEDULA 
+
+def Regis_Cedula(update: Update, context: CallbackContext) -> int:
+    text = update.message.text
+    logger.info(f"Obtubimos su número de Cedula: {text}")
+    Ced = gsconn.SaveNube('B3',text)
+    logger.info(Ced)
+    logger.info("Se Guardo el número de Cedula")
+    update.message.reply_text(f"Listo Se ha Guardado Satisfactoriamente tu número de Cedula:{text}")
+    update.message.reply_text('Ahora Porfavor Ingresa la Fecha para tu vuelo\n Ejemplo: "10/4/2021"')
+    return FECHA 
+
+def Regis_Fecha(update: Update, context: CallbackContext) -> int:
+    text = update.message.text
+    logger.info(f"Obtubimos la fecha de su vuelo: {text}")
+    Fecha_Vuelo = gsconn.SaveNube('B5',text)
+    logger.info(Fecha_Vuelo)
+    logger.info("Se Guardo la fecha de su vuelo")
+
+    update.message.reply_text(f"Listo Se ha Guardado Satisfactoriamente la fecha de su vuelo en:{text}")
+    update.message.reply_text('Ahora Porfavor escriba "ok" para seguir ')
+    return  RESERVA
+
+def Reservados(update: Update, context: CallbackContext) -> int:
+    logger.info("Listo empezaremos el proceso de reservación")
+    elID = gsconn.Retornar_ID()
+    elasiento = gsconn.Buscar_Asientos(elID)
+    logger.info("Se Completo el retorno del ID")
+    update.message.reply_text(f"Listo, tenemos: {elasiento} asientos disponibles, cuantos desea reservar?")
+    return  ASIENTOS
+
+def Regis_Asientos(update: Update, context: CallbackContext) -> int:
+    text = update.message.text
+    logger.info(f"Listo reservaremos {text} asientos")
+    update.message.reply_text(f"Listo, Reservaremos {text} asientos para usted")
+    CAsiento = gsconn.SaveNube('B6',text)
+    logger.info(CAsiento)
+    logger.info("Se guardo la cantidad de asientos reservados")
+    update.message.reply_text(f"Listo, Porfavor Ingrese una lista de los asientos que desea reservar.")
+    update.message.reply_text('Le recordamos que los nombres de los asientos son los numeros del 1 al 300\n Para ingresar los nombres separelos por ","\n Ejemplo 11,2,4,5,8')
+
+    return  ASIENTOS
+
 
 def done(update: Update, context: CallbackContext) -> int:
     nombre = update.message.from_user.username
@@ -214,6 +323,47 @@ def main() -> None:
             RETORNO: [
                 MessageHandler(
                    Filters.text & ~Filters.command, Volver_Retorno
+                )
+            ],
+            UBICACION: [
+                MessageHandler(
+                   Filters.text & ~Filters.command, ubicacion1 
+                )
+            ], 
+            ANSWER: [
+                MessageHandler(
+                    Filters.regex('^(Si)$'), answerY,
+                    Filters.regex('^(No)$'), answerN
+                ),
+            ],
+            ID: [
+                MessageHandler(
+                   Filters.text & ~Filters.command, TheId 
+                )
+            ],
+            NOMBRE: [
+                MessageHandler(
+                   Filters.text & ~Filters.command, Regis_Nombre 
+                )
+            ],
+            CEDULA: [
+                MessageHandler(
+                   Filters.text & ~Filters.command, Regis_Cedula 
+                )
+            ],
+            FECHA: [
+                MessageHandler(
+                   Filters.text & ~Filters.command, Regis_Fecha 
+                )
+            ],
+            RESERVA: [
+                MessageHandler(
+                   Filters.text & ~Filters.command, Reservados 
+                )
+            ],
+            ASIENTOS: [
+                MessageHandler(
+                   Filters.text & ~Filters.command, Regis_Asientos 
                 )
             ],
         },
