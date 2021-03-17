@@ -40,11 +40,13 @@ class gsheet_helper:
 
     def Buscar(self, name):
         sheetComp = self.gsheet.worksheet(CLIENT_SHEET) 
-        try:
-            cell_list = sheetComp.findall(name)
-            x = len(cell_list)
-            print(x)
-            print(f"Tenemos {x} Resultados:")
+        cell_list = sheetComp.findall(name)
+        x = len(cell_list)
+        if x > 0:
+            print(cell_list)
+            
+            #print(x)
+            #print(f"Tenemos {x} Resultados:")
             L = []
             for indice in cell_list:
                 cell = indice   
@@ -52,7 +54,7 @@ class gsheet_helper:
                 L.append(values_list)
             #val = sheetComp.cell(cell.row, cell.col).value  para conseguir el nombre de una CELL
             df = pd.DataFrame(L, columns=['|ID|','Avion|','IATA|','Pais-Origen|','Pais-Des|','Aerop - Origen|','Aerop - Destino|'])
-        except:
+        else:
             df = "Losiento No hay Coincidencias"
         
         return df
@@ -74,7 +76,7 @@ class gsheet_helper:
             #val = sheetComp.cell(cell.row, cell.col).value  para conseguir el nombre de una CELL
             df = pd.DataFrame(sheetView.get(range))
         except:
-            df = f"Losiento No hay ninguna Id con el nombre de: {name}"
+            df = f"Losiento No hay ninguna ID con el nombre de: {name}"
         
         return df
 
@@ -96,9 +98,11 @@ class gsheet_helper:
         #sheet.add_rows(1)
         #sheet.append_row([element for element in New_Avi.values()])
 
+    
+
 if __name__ == "__main__":
     #print(gsheet_helper().getlistado())
-    print(gsheet_helper().Buscar("Argentina"))
+    print(gsheet_helper().Ver_Vuelo("tony"))
     #print(gsheet_helper().store_user("Ecuador"))
-    print(gsheet_helper().Ver_Vuelo('A1'))
+    #print(gsheet_helper().Ver_Vuelo('A1'))
     

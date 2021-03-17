@@ -26,14 +26,15 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
+CHOOSING, TYPING_REPLY, TYPING_CHOICE, BUSCAR, VER, RETORNO = range(6)
 
 reply_keyboard = [
     ['Ver Vuelo', 'Buscar','Listado'],
-    ['BUY_TICKET', 'BUYRT_TICKET'],
+    ['Buy Ticket', 'BuyRT Ticket'],
     ['start','Done'],
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
 
 
 
@@ -50,10 +51,12 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 def start(update: Update, context: CallbackContext) -> int:
     logger.info("Ingresamos a start")
     name = update.message.from_user.username
+    
     update.message.reply_text(
-        f"!Bienvenido {name}! Esto es SkytravelApp\n"
+         f"!Bienvenido {name}! Esto es SkytravelApp\nUn Bot para ayudarte a Revisar, Buscar Vuelos y Comprar Voletos para  Avión\n"
         "¿Que puedo hacer por ti?",
-        reply_markup=markup,
+        reply_markup=markup
+    
     )
 
     return CHOOSING
@@ -67,48 +70,58 @@ def regular_choice(update: Update, context: CallbackContext) -> int:
     return TYPING_REPLY
 
 def buscar_choice(update: Update, context: CallbackContext) -> int:
-    logger.info("Ingresamos a buscar choice")
+    logger.info("Logramos Ingresamos a buscar choice")
 
     text = update.message.text
     context.user_data['choice'] = text
-    update.message.reply_text(f'Buscaremos coincidencias con {text.upper()} en los campos mencionados anteriormente.')
+    update.message.reply_text(f'Buscaremos coincidencias con {text} en los campos mencionados anteriormente.')
 
     vuelos = gsconn.Buscar(text)
     logger.info("Se realizo el Buscar(text)")
-    update.message.reply_text(f"Estos son los Resultados de buscar {text.upper()}:")
+    update.message.reply_text(f"Estos son los Resultados de buscar {text}:")
     update.message.reply_text(f"{vuelos}")
+    update.message.reply_text(f"Estos son los Resultados de buscar {text}:")
   
+    return RETORNO
+
+def Volver_Retorno(update: Update, context: CallbackContext) -> int:
+    logger.info("Logramos Ingresamos a Volver_Retorno")
+    name = update.message.from_user.username
+    update.message.reply_text(f"Listo {name}!, esos fueron los resultados,¿Que deseas hacer ahora?",reply_markup=markup,)
+
     return CHOOSING
-    
+
 
 def buscar_choice_vuelo(update: Update, context: CallbackContext) -> int:
-    logger.info("Ingresamos a buscar vuelo")
+    logger.info("Logramos Ingresar a buscar choice vuelo")
 
     text = update.message.text
     context.user_data['choice'] = text
     
-    update.message.reply_text(f'Buscaremos el ID: {text} en los registros de vuelos, Porfavor espere.')
-    vuelos = gsconn.Ver_Vuelo(text)
+    update.message.reply_text(f'Buscaremos el ID: {text.upper()} en los registros de vuelos, Porfavor espere.')
+    vuelos = gsconn.Ver_Vuelo(text.upper())
     logger.info(f"Se realizo el Buscar({text})")
     update.message.reply_text(f"{vuelos}")
     
-    update.message.reply_text(f'Losiento escribiste mal el ID: {text} contiene letras, Porfavor vuelva a iniciar con /Ver Vuelo.')
+    update.message.reply_text(f'Porfavor vuelva a iniciar ¿Si?')
   
-    return CHOOSING
+    return RETORNO
 
 def custom_choice(update: Update, context: CallbackContext) -> int:
+    logger.info("Logramos entrar en cusmtom_choice de Buscar")
+
     update.message.reply_text(
         '¿Deseas Buscar? No hay problema!, ' 'Puedes buscar ingresando alguno de los siguientes datos:\nPais de Destino/Origen, código IATA, Nombre de Aeropuerto y Ciudad o País \nRecuerda solo ingresar uno de estos datos por búsqueda.'
     )
 
-    return buscar_choice
+    return BUSCAR
 
 def custom_choiceV(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
-        'Para revisar los detalles de un vuelo,' 'por favor ingresar el "Id" del vuelo que deseas revisar'
+        'Para revisar los detalles de un vuelo,' ' por favor ingresar el "ID" del vuelo que deseas revisar'
     )
 
-    return buscar_choice_vuelo
+    return VER
 
 
 def received_information(update: Update, context: CallbackContext) -> int:
@@ -169,6 +182,7 @@ def main() -> None:
             CHOOSING: [
                 MessageHandler(Filters.regex('^start$'), start),
                 MessageHandler(
+                    #Filters.text & ~Filters.command, regular_choice
                     Filters.regex('^(Nombre|Age|Color favorito|Number of siblings)$'), regular_choice
                 ),
                 MessageHandler(Filters.regex('^Buscar$'), custom_choice),
@@ -176,20 +190,29 @@ def main() -> None:
                 MessageHandler(Filters.regex('^Ver Vuelo$'), custom_choiceV),
             ],  
             TYPING_CHOICE: [
-                MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), buscar_choice
-                ),
                  MessageHandler(
                     Filters.text & ~(Filters.command | Filters.regex('^Done$')), buscar_choice_vuelo
                 ),
-               # MessageHandler(
-               #    Filters.text & ~(Filters.command | Filters.regex('^Done$')), regular_choice
-               # ),
             ],
             TYPING_REPLY: [
                 MessageHandler(
                     Filters.text & ~(Filters.command | Filters.regex('^Done$')),
                     received_information,
+                )
+            ],
+            BUSCAR: [
+                MessageHandler(
+                   Filters.text & ~Filters.command, buscar_choice
+                )
+            ],
+            VER: [
+                MessageHandler(
+                   Filters.text & ~Filters.command, buscar_choice_vuelo
+                )
+            ],
+            RETORNO: [
+                MessageHandler(
+                   Filters.text & ~Filters.command, Volver_Retorno
                 )
             ],
         },
