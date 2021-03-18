@@ -112,12 +112,21 @@ class gsheet_helper:
 
     def mostrar(self): 
         sheetView = self.gsheet.worksheet(FACTUR_SHEET)
-      
-        df = pd.DataFrame(sheetView.get('A1:B9'),columns=['*** DETALLES ***', '*** DATOS ***'],index=['', '', '','','','',''])
-        
-        val = sheetView.get('B8').first()
-
-        lista = [df,val]
+        Reply = sheetView.get('D4').first()
+        try:
+            Reply = int(Reply)
+        except:
+            Reply = Reply
+        if Reply == 1:
+            df = pd.DataFrame(sheetView.get('A1:B9'),columns=['*** DETALLES ***', '*** DATOS ***'],index=['', '', '','','','','','',''])
+            val = sheetView.get('B10').first()
+            lista = [df,val,Reply]
+        elif   Reply == 2:
+            df = pd.DataFrame(sheetView.get('A14:B22'),columns=['*** DETALLES ***', '*** DATOS ***'],index=['', '', '','','','','','',''])
+            val = sheetView.get('B10').first()
+            lista = [df,val,Reply]
+        else:
+            lista = ['hubo un','Error']
 
         return lista
 
@@ -152,6 +161,6 @@ if __name__ == "__main__":
     #print(gsheet_helper().SaveNube('B1','Funciona'))
     print(gsheet_helper().mostrar())
     #print(gsheet_helper().store_user("Ecuador"))
-    print(gsheet_helper().Ver_Vuelo('A1'))
+    #print(gsheet_helper().Ver_Vuelo('A1'))
     
     

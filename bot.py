@@ -27,7 +27,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, TYPING_REPLY, TYPING_CHOICE, BUSCAR, VER, RETORNO, BUY_TICKET1, UBICACION, ANSWER, ID, NOMBRE, CEDULA, FECHA, RESERVA, ASIENTOS, LISTASIENTOS, MOSTRAR = range(17)
+CHOOSING, TYPING_REPLY, TYPING_CHOICE, BUSCAR, VER, RETORNO, BUY_TICKET1, BUYRT_TICKET1, UBICACION, ANSWER, ID, NOMBRE, CEDULA, FECHA, RESERVA, ASIENTOS, LISTASIENTOS, MOSTRAR = range(18)
 
 reply_keyboard = [
     ['Ver Vuelo', 'Buscar','Listado'],
@@ -52,14 +52,34 @@ def start(update: Update, context: CallbackContext) -> int:
     name = update.message.from_user.username
     
     update.message.reply_text(
-         f"!Bienvenido {name}! Esto es SkytravelApp\nUn Bot para ayudarte a Revisar, Buscar Vuelos y Comprar Voletos para  Avión\n"
-        "¿Que puedo hacer por ti?",
-        reply_markup=markup
-    
+         f"!Bienvenido {name}! Esto es **SkytravelApp**\nUn Bot para ayudarte a Revisar, Buscar Vuelos y Comprar Voletos para  Avión.\n"
+        "¿Que puedo hacer por ti?, Si deseas ayuda escribe help y te dare más detalles",
+        reply_markup=markup    
     )
 
     return CHOOSING
 
+def help(update: Update, context: CallbackContext) -> int:
+    logger.info("El usuario pide ayuda")
+    name = update.message.from_user.username
+    
+    update.message.reply_text(
+         f"!Bienvenido {name}! Esto es **SkytravelApp**\nUn Bot para ayudarte a Revisar, Buscar Vuelos y Comprar Voletos para  Avión.\n"
+        "Usaste pediste ayuda asi que te explicare como funciono,\n"
+        "Tengo **7 botones** que puedes usar para interactuar conmigo en mis distintas funciones\n"
+        "**Listado:** Mostrara el listado de todos los vuelos que tengo registrados.\n"
+        "**Buscar:** Buscara en mi base de datos un vuelo que desees usando distintos parametros.\n"
+        "**Ver Vuelo:** Mostrara un vuelo de mi base de datos con todos sus detalles.\n"
+        "**Buy Ticket:** Reservara un asiento/s en un vuelo solo de ida que hayas seleccionado.\n"
+        "**BuyRT Ticket:**Reservara un asiento/s en un vuelo de ida y vuelta que hayas seleccionado.\n"
+        "**start:**Empieza denuevo la conversación despues de haver salido de ella.\n"
+        "**Salir:** Saldra de cualquier menú en el que estes.",
+        reply_markup=markup    
+    )
+    update.message.reply_text("Prueba Alguno de los comandos anteriores.")
+
+
+    return CHOOSING
 
 def regular_choice(update: Update, context: CallbackContext) -> int:
     text = update.message.text
@@ -162,6 +182,15 @@ def listadoV(update: Update, context: CallbackContext) -> int:
 def Buy_Ticket(update: Update, context: CallbackContext) -> int:
     logger.info("Iniciamos el procesos de Reservar un vuelo solo de ida")
     update.message.reply_text("*****RESERVACIÓN SOLO VUELO DE IDA*****")
+    update.message.reply_text("Para Reservar un vuelo primero dinos, ¿En que aeropuerto de los de la lista te encuentras?")
+    update.message.reply_text("José Joaquín de Olm.\nLas Américas\nToronto\nWashington Dulles\nJosé Joaquín de Olm.")
+    logger.info("Se mostro el contesto la ubicacion")
+    
+    return UBICACION
+
+def BuyRT_Ticket(update: Update, context: CallbackContext) -> int:
+    logger.info("Iniciamos el procesos de Reservar un vuelo solo de ida")
+    update.message.reply_text("*****RESERVACIÓN SOLO VUELO DE IDA Y VUELTA*****")
     update.message.reply_text("Para Reservar un vuelo primero dinos, ¿En que aeropuerto de los de la lista te encuentras?")
     update.message.reply_text("José Joaquín de Olm.\nLas Américas\nToronto\nWashington Dulles\nJosé Joaquín de Olm.")
     logger.info("Se mostro el contesto la ubicacion")
@@ -297,13 +326,18 @@ def Lista_Asientos(update: Update, context: CallbackContext) -> int:
 def Mostrar_Recib(update: Update, context: CallbackContext) -> int:
     logger.info(f"**Listo Generaremos Recibo**")
     Recibo = gsconn.mostrar()
-
+    try:
+        Recibo = int(Recibo)
+    except:
+        Recibo = Recibo
     update.message.reply_text(f"Felicidades Por Completar la compra de volesto/s para su viaje con Exito")
-    update.message.reply_text("************ RECIBO ************\n"f"{Recibo[0]}" "\nLista de Asientos Reservados:\n" f"{Recibo[1]}" )
+    if Recibo[2] == 1:
+        update.message.reply_text("************* RECIBO DE IDA *************\n"f"{Recibo[0]}" "\nLista de Asientos Reservados:\n" f"{Recibo[1]}" )
+    elif Recibo[2] == 1:
+        update.message.reply_text("**********RECIBO DE IDA Y VUELTA **********\n"f"{Recibo[0]}" "\nLista de Asientos Reservados:\n" f"{Recibo[1]}" )        
     update.message.reply_text(f"¿En que le puedo ayudar Ahora?",reply_markup=markup)
 
     return CHOOSING
-
 
 
 def done(update: Update, context: CallbackContext) -> int:
@@ -330,6 +364,8 @@ def main() -> None:
         states={
             CHOOSING: [
                 MessageHandler(Filters.regex('^start$'), start),
+                MessageHandler(Filters.regex('^help$'), help),
+                MessageHandler(Filters.regex('^Help$'), help),
                 MessageHandler(
                     #Filters.text & ~Filters.command, regular_choice
                     Filters.regex('^(Nombre)$'), regular_choice
@@ -376,9 +412,16 @@ def main() -> None:
                 MessageHandler(
                     Filters.regex('^Salir$'), done )
             ],
-            BUY_TICKET1: [
+             BUY_TICKET1: [
                 MessageHandler(
                     Filters.regex('^Buy Ticket$'), Buy_Ticket
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
+            ],  
+            BUYRT_TICKET1: [
+                MessageHandler(
+                    Filters.regex('^BuyRT Ticket$'), BuyRT_Ticket
                 ),
                 MessageHandler(
                     Filters.regex('^Salir$'), done )
@@ -455,12 +498,8 @@ def main() -> None:
                     Filters.regex('^Salir$'), done )
             ],
             MOSTRAR: [
-                MessageHandler(
-                    Filters.regex('^Mostrar$'), Mostrar_Recib
-                ),
-                MessageHandler(
-                    Filters.regex('^mostrar$'), Mostrar_Recib
-                ),
+                MessageHandler(Filters.regex('^Mostrar$'), Mostrar_Recib),
+                MessageHandler(Filters.regex('^mostrar$'), Mostrar_Recib),
                 MessageHandler(
                     Filters.regex('^Salir$'), done )
             ],
