@@ -30,11 +30,11 @@ class gsheet_helper:
         sheetComp = self.gsheet.worksheet(CLIENT_SHEET)
         #sheetComp.get_all_records(CLIENT_SHEET) para traer todas las tablas
         #sheetPart.get('A1:B11')
-        Completo = pd.DataFrame({"|ID|":sheetComp.get('A2:A8'),
-                                 "|Avion|":sheetComp.get('B2:B8'),
-                                 "|IATA|":sheetComp.get('C2:C8'),
-                                 "|Pais-Origen|":sheetComp.get('D2:D8'),
-                                 "|Pais-Destino|":sheetComp.get('E2:E8')
+        Completo = pd.DataFrame({"|ID|":sheetComp.get('A2:A27'),
+                                 "|Avion|":sheetComp.get('B2:B27'),
+                                 "|IATA|":sheetComp.get('C2:C27'),
+                                 "|Pais-Origen|":sheetComp.get('D2:D27'),
+                                 "|Pais-Destino|":sheetComp.get('E2:E27'),
                                 })
        
         return Completo
@@ -68,11 +68,61 @@ class gsheet_helper:
             print(cell)
             print(f"Resultados del ID:{name}")
             Col1 = {
-            'A1': "A1",'B1': "C1", 'C1': "E1",'D1': "G1",
-            'E1': "I1", 'F1': "K1", 'G1': "M1"}
-            Col2 ={
-            'A1': "B11", 'B1': "D11",  'C1': "F11",
-            'D1': "H11",'E1': "J11", 'F1': "L11", 'G1': "N11"}
+            'A1': "A1",
+            'A2': "C1", 
+            'A3': "E1",
+            'A4': "G1",
+            'A5': "I1", 
+            'B1': "K1", 
+            'C1': "M1",
+            'C2': "O1",
+            'C3': "Q1", 
+            'C4': "S1",
+            'D1': "U1",
+            'D2': "W1", 
+            'D3': "Y1", 
+            'E1': "AA1",
+            'E2': "AC1",
+            'E3': "AE1",            
+            'F1': "AG1", 
+            'F2': "AI1",
+            'F3': "AK1",
+            'F4': "AM1", 
+            'F5': "AO1", 
+            'G1': "AQ1",
+            'G2': "AS1",
+            'G3': "AU1",
+            'G4': "AW1", 
+            'G5': "AY1", 
+}
+            Col2 = {
+            'A1': "B11",   
+            'A2': "D11", 
+            'A3': "F11",
+            'A4': "H11",
+            'A5': "J11", 
+            'B1': "L11", 
+            'C1': "N11",
+            'C2': "P11",
+            'C3': "R11", 
+            'C4': "T11",
+            'D1': "V11",
+            'D2': "X11", 
+            'D3': "Z11", 
+            'E1': "AB11",
+            'E2': "AD11",
+            'E3': "AF11",            
+            'F1': "AH11", 
+            'F2': "AJ11",
+            'F3': "AL11",
+            'F4': "AN11", 
+            'F5': "AP11", 
+            'G1': "AR11",
+            'G2': "AT11",
+            'G3': "AV11",
+            'G4': "AX11", 
+            'G5': "AZ11", 
+}
             range = Col1.get(name)+':'+Col2.get(name)
         
             #val = sheetComp.cell(cell.row, cell.col).value  para conseguir el nombre de una CELL

@@ -76,7 +76,7 @@ def help(update: Update, context: CallbackContext) -> int:
         "**Salir:** Saldra de cualquier menú en el que estes.",
         reply_markup=markup    
     )
-    update.message.reply_text("Prueba Alguno de los comandos anteriores.")
+    update.message.reply_text("Prueba Alguno de los comandos")
 
 
     return CHOOSING
@@ -190,7 +190,7 @@ def Buy_Ticket(update: Update, context: CallbackContext) -> int:
 
 def BuyRT_Ticket(update: Update, context: CallbackContext) -> int:
     logger.info("Iniciamos el procesos de Reservar un vuelo solo de ida")
-    update.message.reply_text("*****RESERVACIÓN SOLO VUELO DE IDA Y VUELTA*****")
+    update.message.reply_text("****RESERVACIÓN VUELO****\n****DE IDA Y VUELTA****")
     update.message.reply_text("Para Reservar un vuelo primero dinos, ¿En que aeropuerto de los de la lista te encuentras?")
     update.message.reply_text("José Joaquín de Olm.\nLas Américas\nToronto\nWashington Dulles\nJosé Joaquín de Olm.")
     logger.info("Se mostro el contesto la ubicacion")
@@ -366,12 +366,13 @@ def main() -> None:
                 MessageHandler(Filters.regex('^start$'), start),
                 MessageHandler(Filters.regex('^help$'), help),
                 MessageHandler(Filters.regex('^Help$'), help),
-                MessageHandler(
+                MessageHandler( 
                     #Filters.text & ~Filters.command, regular_choice
                     Filters.regex('^(Nombre)$'), regular_choice
                 ),
                 MessageHandler(Filters.regex('^Buscar$'), custom_choice),
                 MessageHandler(Filters.regex('^Buy Ticket$'), Buy_Ticket),
+                MessageHandler(Filters.regex('^BuyRT Ticket$'), BuyRT_Ticket),
                 MessageHandler(Filters.regex('^Listado$'), listadoV),
                 MessageHandler(Filters.regex('^Ver Vuelo$'), custom_choiceV),
                 MessageHandler(Filters.regex('^Salir$'), done )
@@ -408,9 +409,7 @@ def main() -> None:
             RETORNO: [
                 MessageHandler(
                    Filters.text & ~Filters.command, Volver_Retorno
-                ),
-                MessageHandler(
-                    Filters.regex('^Salir$'), done )
+                ),                
             ],
              BUY_TICKET1: [
                 MessageHandler(
