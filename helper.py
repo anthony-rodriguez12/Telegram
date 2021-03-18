@@ -1,4 +1,5 @@
 import gspread
+import time
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 from cfg import GDRIVE_SHEET_KEY
@@ -75,7 +76,7 @@ class gsheet_helper:
             range = Col1.get(name)+':'+Col2.get(name)
         
             #val = sheetComp.cell(cell.row, cell.col).value  para conseguir el nombre de una CELL
-            df = pd.DataFrame(sheetView.get(range))
+            df = pd.DataFrame(sheetView.get(range),columns=['*** REGRISTRO DE ***', '*** DATOS ***'],index=['', '', '','','','','','','','',''])
         except:
             df = f"Losiento No hay ninguna ID con el nombre de: {name}"
         
@@ -96,6 +97,30 @@ class gsheet_helper:
         else:
             print(f"El ID:{New_Avi} si existe")
             return 'ok'
+
+    def FechNube(self, Range): 
+        try:
+            Nube = self.gsheet.worksheet(FACTUR_SHEET)
+            times = time.strftime("%d/%m/%y")
+            Nube.update(Range , times)
+            print(f"Esto es la celda: {Range}")
+            
+            return 'Se Guardo Bien '
+        except:
+            return 'Algo Fallo'
+
+
+    def mostrar(self): 
+        sheetView = self.gsheet.worksheet(FACTUR_SHEET)
+      
+        df = pd.DataFrame(sheetView.get('A1:B9'),columns=['*** DETALLES ***', '*** DATOS ***'],index=['', '', '','','','',''])
+        
+        val = sheetView.get('B8').first()
+
+        lista = [df,val]
+
+        return lista
+
 
     def SaveNube(self, Range, text): 
         try:
@@ -125,8 +150,8 @@ class gsheet_helper:
 if __name__ == "__main__":
     #print(gsheet_helper().getlistado())
     #print(gsheet_helper().SaveNube('B1','Funciona'))
-    print(gsheet_helper().Buscar_Asientos('A1'))
+    print(gsheet_helper().mostrar())
     #print(gsheet_helper().store_user("Ecuador"))
-    #print(gsheet_helper().Ver_Vuelo('A1'))
+    print(gsheet_helper().Ver_Vuelo('A1'))
     
     

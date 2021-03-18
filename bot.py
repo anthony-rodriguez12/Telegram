@@ -1,6 +1,7 @@
 
 import logging
 import numpy as np
+import time
 
 from helper import gsheet_helper
 from cfg import TOKEN    
@@ -26,15 +27,14 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, TYPING_REPLY, TYPING_CHOICE, BUSCAR, VER, RETORNO, UBICACION, ANSWER, ID, NOMBRE, CEDULA, FECHA, RESERVA, ASIENTOS = range(14)
+CHOOSING, TYPING_REPLY, TYPING_CHOICE, BUSCAR, VER, RETORNO, BUY_TICKET1, UBICACION, ANSWER, ID, NOMBRE, CEDULA, FECHA, RESERVA, ASIENTOS, LISTASIENTOS, MOSTRAR = range(17)
 
 reply_keyboard = [
     ['Ver Vuelo', 'Buscar','Listado'],
     ['Buy Ticket', 'BuyRT Ticket'],
-    ['start','Done'],
+    ['start','Salir'],
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-
 
 
 
@@ -79,7 +79,7 @@ def buscar_choice(update: Update, context: CallbackContext) -> int:
     logger.info("Se realizo el Buscar(text)")
     update.message.reply_text(f"Estos son los Resultados de buscar {text}:")
     update.message.reply_text(f"{vuelos}")
-    update.message.reply_text(f'Escriba "OK" para continuar')
+    update.message.reply_text(f'Porfavor Escribe "OK" para continuar')
   
     return RETORNO
 
@@ -103,7 +103,7 @@ def buscar_choice_vuelo(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(f"{vuelos}")
     
     update.message.reply_text(f'Porfavor vuelva a iniciar si desea revisar otro vuelo')
-    update.message.reply_text(f'Escriba Ok para continuar')
+    update.message.reply_text(f'Porfavor Escribe "OK" para continuar')
     return RETORNO
 
 def custom_choice(update: Update, context: CallbackContext) -> int:
@@ -153,7 +153,9 @@ def listadoV(update: Update, context: CallbackContext) -> int:
     logger.info("Logramos entrar en ListadoV")
     vuelos = gsconn.getlistado()
     logger.info("Se mostro el listado de vuelos")
-    update.message.reply_text(f"{vuelos}",reply_markup=markup)
+    update.message.reply_text(f"{vuelos}")
+    name = update.message.from_user.username
+    update.message.reply_text(f"Listo {name}!,\n¿Que deseas hacer ahora?",reply_markup=markup)
     
     return CHOOSING
 
@@ -173,8 +175,8 @@ def ubicacion1(update: Update, context: CallbackContext) -> int:
     ubi = gsconn.SaveNube('F1',text)
     logger.info(ubi)
     logger.info("Se realizaron la lista y el save ubicacion")
-    update.message.reply_text("Listo Se ha Guardado Satisfactoriamente tu respuesta")
-    update.message.reply_text(f"Aqui Estan Todos Los Vuelos del Aeropuerto {text}")
+    update.message.reply_text("Listo Se ha Guardado Satisfactoriamente su respuesta")
+    update.message.reply_text(f"Aqui Estan Todos Los Vuelos del Aeropuerto de {text}")
     update.message.reply_text(f"{lista}")
     update.message.reply_text("¿Desea realizar una reservación en alguno de los vuelos mostrados?\nPorfavor Responda un Si o un No")
 
@@ -184,7 +186,7 @@ def ubicacion1(update: Update, context: CallbackContext) -> int:
 def answerY(update: Update, context: CallbackContext) -> int:
     text = update.message.text
     logger.info(f"Obtubimos un: {text} por respuesta")
-    update.message.reply_text("Listo reservaremos un asiento de los vuelos mostrados para ti")
+    update.message.reply_text("Listo, realizaremos tu reservación en uno de los vuelos mostrados anteriormente")
     update.message.reply_text("Por favor ingresa el ID del vuelo que deseas" )
 
     return ID
@@ -196,8 +198,8 @@ def TheId(update: Update, context: CallbackContext) -> int:
     elID = gsconn.SaveNube('B1',text)
     logger.info(f"El Estado del ID:{elID}")
     if pas == 'ok':
-        update.message.reply_text("Listo Se ha Guardado Satisfactoriamente el ID de tu respuesta")
-        update.message.reply_text("Ahora Porfavor Ingresa tus Datos Reales para crear un comprobante de Registro")
+        update.message.reply_text("Listo Se ha Guardado Satisfactoriamente su respuesta")
+        update.message.reply_text("Porfavor Ingresa tus Datos Reales para crear un comprobante de Registro")
         update.message.reply_text("Como Primer Dato Ingresa tu Nombre Completo\n Ejemplo: Manuel Jose Perez Herrera")
         return NOMBRE
 
@@ -209,7 +211,7 @@ def TheId(update: Update, context: CallbackContext) -> int:
 def answerN(update: Update, context: CallbackContext) -> int:
     text = update.message.text
     logger.info(f"Obtubimos un: {text} por respuesta")
-    update.message.reply_text(f"Respondiste {text}, asi que escoje ¿Que deseas hacer ahrora?",reply_markup=markup)
+    update.message.reply_text(f"Esta bien respondiste {text},¿Que deseas hacer ahrora?",reply_markup=markup)
 
     return CHOOSING
 
@@ -239,11 +241,11 @@ def Regis_Fecha(update: Update, context: CallbackContext) -> int:
     text = update.message.text
     logger.info(f"Obtubimos la fecha de su vuelo: {text}")
     Fecha_Vuelo = gsconn.SaveNube('B5',text)
-    logger.info(Fecha_Vuelo)
-    logger.info("Se Guardo la fecha de su vuelo")
+    Fecha_Actual = gsconn.FechNube('B4')
+    logger.info(f"Se Guardo la fecha de su vuelo:{Fecha_Vuelo} y esto se hizo el {Fecha_Actual}")
 
     update.message.reply_text(f"Listo Se ha Guardado Satisfactoriamente la fecha de su vuelo en:{text}")
-    update.message.reply_text('Ahora Porfavor escriba "ok" para seguir ')
+    update.message.reply_text('Ahora Porfavor escriba "OK" para seguir ')
     return  RESERVA
 
 def Reservados(update: Update, context: CallbackContext) -> int:
@@ -256,15 +258,52 @@ def Reservados(update: Update, context: CallbackContext) -> int:
 
 def Regis_Asientos(update: Update, context: CallbackContext) -> int:
     text = update.message.text
-    logger.info(f"Listo reservaremos {text} asientos")
-    update.message.reply_text(f"Listo, Reservaremos {text} asientos para usted")
-    CAsiento = gsconn.SaveNube('B6',text)
-    logger.info(CAsiento)
-    logger.info("Se guardo la cantidad de asientos reservados")
-    update.message.reply_text(f"Listo, Porfavor Ingrese una lista de los asientos que desea reservar.")
-    update.message.reply_text('Le recordamos que los nombres de los asientos son los numeros del 1 al 300\n Para ingresar los nombres separelos por ","\n Ejemplo 11,2,4,5,8')
+    try:
+        text = int(text)
+    except:
+        text = text
+    if type(text) != str:
+        if text > 0:
+        
+            logger.info(f"Listo reservaremos {text} asientos")
+            update.message.reply_text(f"Listo, Reservaremos {text} asientos para usted")
+            CAsiento = gsconn.SaveNube('B6',text)
+            logger.info(CAsiento)
+            logger.info("Se guardo la cantidad de asientos reservados")
+            update.message.reply_text(f"Listo, Porfavor Ingrese una lista de los asientos que desea reservar.")
+            update.message.reply_text('Le recordamos que los nombres de los asientos son los numeros del 1 al 300\n Para ingresar los nombres separelos por ","\n Ejemplo 11,2,4,5,8')     
+        
+            return LISTASIENTOS
+        else:
+            logger.info(f"Las reservación: {text} esta mal ingresada")
+            update.message.reply_text(f"Losiento ingreso una respuesta númerica erronea vuelva a intentarlo")
+            return ASIENTOS
+    else:
+            logger.info(f"Las reservación: {text} esta mal ingresada")
+            update.message.reply_text(f"Losiento ingreso una respuesta de texto, vuelva a intentarlo")
+            return ASIENTOS            
 
-    return  ASIENTOS
+def Lista_Asientos(update: Update, context: CallbackContext) -> int:
+    text = update.message.text  
+    logger.info(f"Listo reservaremos los asientos: {text}")
+    update.message.reply_text(f"Listo, Usted Reservo estos asientos: {text} ")
+    TotalAsientos = gsconn.SaveNube('B10',text)
+    logger.info(TotalAsientos)
+    logger.info("Se guardaron todos los asientos que reservo")
+    update.message.reply_text(f"Por Favor Escriba Mostrar para generar su Recibo")
+
+    return MOSTRAR
+
+def Mostrar_Recib(update: Update, context: CallbackContext) -> int:
+    logger.info(f"**Listo Generaremos Recibo**")
+    Recibo = gsconn.mostrar()
+
+    update.message.reply_text(f"Felicidades Por Completar la compra de volesto/s para su viaje con Exito")
+    update.message.reply_text("************ RECIBO ************\n"f"{Recibo[0]}" "\nLista de Asientos Reservados:\n" f"{Recibo[1]}" )
+    update.message.reply_text(f"¿En que le puedo ayudar Ahora?",reply_markup=markup)
+
+    return CHOOSING
+
 
 
 def done(update: Update, context: CallbackContext) -> int:
@@ -296,78 +335,137 @@ def main() -> None:
                     Filters.regex('^(Nombre)$'), regular_choice
                 ),
                 MessageHandler(Filters.regex('^Buscar$'), custom_choice),
+                MessageHandler(Filters.regex('^Buy Ticket$'), Buy_Ticket),
                 MessageHandler(Filters.regex('^Listado$'), listadoV),
                 MessageHandler(Filters.regex('^Ver Vuelo$'), custom_choiceV),
+                MessageHandler(Filters.regex('^Salir$'), done )
             ],  
             TYPING_CHOICE: [
                  MessageHandler(
                     Filters.text & ~(Filters.command | Filters.regex('^Done$')), buscar_choice_vuelo
                 ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ],
             TYPING_REPLY: [
                 MessageHandler(
                     Filters.text & ~(Filters.command | Filters.regex('^Done$')),
                     received_information,
-                )
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ],
             BUSCAR: [
                 MessageHandler(
                    Filters.text & ~Filters.command, buscar_choice
-                )
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ],
             VER: [
                 MessageHandler(
                    Filters.text & ~Filters.command, buscar_choice_vuelo
-                )
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ],
             RETORNO: [
                 MessageHandler(
                    Filters.text & ~Filters.command, Volver_Retorno
-                )
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ],
+            BUY_TICKET1: [
+                MessageHandler(
+                    Filters.regex('^Buy Ticket$'), Buy_Ticket
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
+            ],  
             UBICACION: [
                 MessageHandler(
                    Filters.text & ~Filters.command, ubicacion1 
-                )
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ], 
             ANSWER: [
                 MessageHandler(
-                    Filters.regex('^(Si)$'), answerY,
-                    Filters.regex('^(No)$'), answerN
+                    Filters.regex('^Si$'), answerY                    
                 ),
+                MessageHandler(
+                    Filters.regex('^si$'), answerY                    
+                ),
+                MessageHandler(
+                    Filters.regex('^No$'), answerN
+                ),
+                 MessageHandler(
+                    Filters.regex('^no$'), answerN
+                ),MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ],
             ID: [
                 MessageHandler(
                    Filters.text & ~Filters.command, TheId 
-                )
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ],
             NOMBRE: [
                 MessageHandler(
                    Filters.text & ~Filters.command, Regis_Nombre 
-                )
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ],
             CEDULA: [
                 MessageHandler(
                    Filters.text & ~Filters.command, Regis_Cedula 
-                )
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ],
             FECHA: [
                 MessageHandler(
                    Filters.text & ~Filters.command, Regis_Fecha 
-                )
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ],
             RESERVA: [
                 MessageHandler(
                    Filters.text & ~Filters.command, Reservados 
-                )
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ],
             ASIENTOS: [
                 MessageHandler(
                    Filters.text & ~Filters.command, Regis_Asientos 
-                )
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
+            ],
+            LISTASIENTOS: [
+                MessageHandler(
+                   Filters.text & ~Filters.command, Lista_Asientos 
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
+            ],
+            MOSTRAR: [
+                MessageHandler(
+                    Filters.regex('^Mostrar$'), Mostrar_Recib
+                ),
+                MessageHandler(
+                    Filters.regex('^mostrar$'), Mostrar_Recib
+                ),
+                MessageHandler(
+                    Filters.regex('^Salir$'), done )
             ],
         },
-        fallbacks=[MessageHandler(Filters.regex('^Done$'), done)],
+        fallbacks=[MessageHandler(Filters.regex('^Salir$'), done)],
     )
 
     dispatcher.add_handler(conv_handler)
