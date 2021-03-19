@@ -1,4 +1,3 @@
-
 import logging
 import numpy as np
 import time
@@ -50,30 +49,31 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 def start(update: Update, context: CallbackContext) -> int:
     logger.info("Ingresamos a start")
     name = update.message.from_user.username
-    
+    logger.info(f"El usuario {name} inicio el bot")
+
     update.message.reply_text(
-         f"!Bienvenido {name}! Esto es **SkytravelApp**\nUn Bot para ayudarte a Revisar, Buscar Vuelos y Comprar Voletos para  Avión.\n"
-        "¿Que puedo hacer por ti?, Si deseas ayuda escribe help y te dare más detalles",
+         f"!Bienvenido {name}! Esto es SkytravelApp\nUn Bot para ayudarte a Revisar, Buscar Vuelos y Comprar Boletos para  Avión.\n"
+        "¿Qué puedo hacer por ti?, Si deseas ayuda escribe help y te dare más detalles",
         reply_markup=markup    
     )
 
     return CHOOSING
 
 def help(update: Update, context: CallbackContext) -> int:
-    logger.info("El usuario pide ayuda")
-    name = update.message.from_user.username
     
+    name = update.message.from_user.username
+    logger.info(f"El usuario {name}pide ayuda")
     update.message.reply_text(
-         f"!Bienvenido {name}! Esto es **SkytravelApp**\nUn Bot para ayudarte a Revisar, Buscar Vuelos y Comprar Voletos para  Avión.\n"
-        "Usaste pediste ayuda asi que te explicare como funciono,\n"
-        "Tengo **7 botones** que puedes usar para interactuar conmigo en mis distintas funciones\n"
-        "**Listado:** Mostrara el listado de todos los vuelos que tengo registrados.\n"
-        "**Buscar:** Buscara en mi base de datos un vuelo que desees usando distintos parametros.\n"
-        "**Ver Vuelo:** Mostrara un vuelo de mi base de datos con todos sus detalles.\n"
-        "**Buy Ticket:** Reservara un asiento/s en un vuelo solo de ida que hayas seleccionado.\n"
-        "**BuyRT Ticket:**Reservara un asiento/s en un vuelo de ida y vuelta que hayas seleccionado.\n"
-        "**start:**Empieza denuevo la conversación despues de haver salido de ella.\n"
-        "**Salir:** Saldra de cualquier menú en el que estes.",
+         f"!Bienvenido {name}! Esto es **SkytravelApp**\nUn Bot para ayudarte a Revisar, Buscar Vuelos y Comprar Boletos para  Avión.\n"
+        "Pediste ayuda así que te explicaré como funciono,\n"
+        "Tengo 7 botones que puedes usar para interactuar conmigo en mis distintas funciones\n"
+        "Listado: Mostrará el listado de todos los vuelos que tengo registrados.\n"
+        "Buscar: Buscará en la base de datos un vuelo que desees usando distintos parámetros.\n"
+        "Ver Vuelo: Mostrará un vuelo de mi base de datos con todos sus detalles.\n"
+        "Buy Ticket: Reservará un asiento/s en un vuelo solo de ida que hayas seleccionado.\n"
+        "BuyRT Ticket:Reservará un asiento/s en un vuelo de ida y vuelta que hayas seleccionado.\n"
+        "start: Empieza de nuevo la conversación después de salir de ella.\n"
+        "Salir: Saldrá de cualquier menú en el que estés.",
         reply_markup=markup    
     )
     update.message.reply_text("Prueba Alguno de los comandos")
@@ -99,14 +99,14 @@ def buscar_choice(update: Update, context: CallbackContext) -> int:
     logger.info("Se realizo el Buscar(text)")
     update.message.reply_text(f"Estos son los Resultados de buscar {text}:")
     update.message.reply_text(f"{vuelos}")
-    update.message.reply_text(f'Porfavor Escribe "OK" para continuar')
+    update.message.reply_text(f'Por favor Escribe "OK" para continuar')
   
     return RETORNO
 
 def Volver_Retorno(update: Update, context: CallbackContext) -> int:
     logger.info("Logramos Ingresamos a Volver_Retorno")
     name = update.message.from_user.username
-    update.message.reply_text(f"Listo {name}!,\n¿Que deseas hacer ahora?",reply_markup=markup,)
+    update.message.reply_text(f"Listo {name}!,\n¿Qué deseas hacer ahora?",reply_markup=markup,)
 
     return CHOOSING
 
@@ -117,13 +117,13 @@ def buscar_choice_vuelo(update: Update, context: CallbackContext) -> int:
     text = update.message.text
     context.user_data['choice'] = text
     
-    update.message.reply_text(f'Buscaremos el ID: {text.upper()} en los registros de vuelos, Porfavor espere.')
+    update.message.reply_text(f'Buscaremos el ID: {text.upper()} en los registros de vuelos, Por favor espere.')
     vuelos = gsconn.Ver_Vuelo(text.upper())
     logger.info(f"Se realizo el Buscar({text})")
     update.message.reply_text(f"{vuelos}")
     
-    update.message.reply_text(f'Porfavor vuelva a iniciar si desea revisar otro vuelo')
-    update.message.reply_text(f'Porfavor Escribe "OK" para continuar')
+    update.message.reply_text(f'Vuelva a iniciar si desea revisar otro vuelo')
+    update.message.reply_text(f'Por favor Escribe "OK" para continuar')
     return RETORNO
 
 def custom_choice(update: Update, context: CallbackContext) -> int:
@@ -132,7 +132,7 @@ def custom_choice(update: Update, context: CallbackContext) -> int:
         '¿Deseas Buscar? No hay problema!'
     )
     update.message.reply_text(
-        'Puedes buscar ingresando alguno de los siguientes datos:\n Pais de Destino/Origen\n Código IATA\n Nombre de Aeropuerto\n Ciudad o País'
+        'Puedes buscar ingresando alguno de los siguientes datos:\n País de Destino/Origen\n Código IATA\n Nombre de Aeropuerto\n Ciudad o País'
     )
     update.message.reply_text(
         'Recuerda solo ingresar uno de estos datos por búsqueda.'
@@ -175,7 +175,7 @@ def listadoV(update: Update, context: CallbackContext) -> int:
     logger.info("Se mostro el listado de vuelos")
     update.message.reply_text(f"{vuelos}")
     name = update.message.from_user.username
-    update.message.reply_text(f"Listo {name}!,\n¿Que deseas hacer ahora?",reply_markup=markup)
+    update.message.reply_text(f"Listo {name}!,\n¿Qué deseas hacer ahora?",reply_markup=markup)
     
     return CHOOSING
 
@@ -183,7 +183,8 @@ def Buy_Ticket(update: Update, context: CallbackContext) -> int:
     logger.info("Iniciamos el procesos de Reservar un vuelo solo de ida")
     update.message.reply_text("*****RESERVACIÓN SOLO VUELO DE IDA*****")
     update.message.reply_text("Para Reservar un vuelo primero dinos, ¿En que aeropuerto de los de la lista te encuentras?")
-    update.message.reply_text("José Joaquín de Olm.\nLas Américas\nToronto\nWashington Dulles\nJosé Joaquín de Olm.")
+    update.message.reply_text("Las Américas\nToronto\nWashington Dulles\nJosé Joaquín de Olmedo\n De la Ciudad de México\n El Dorado\n Ibiza\n La Chinita\n Astor Piazzolla\n Diego Aracena\n Comodoro Arturo Merino Benítez\n José María Córdova\n Sevilla-San Pablo\n Maiquetía Simón Bolívar\n Berlín-Tegel\n Tirana-Madre Teresa\n Adolfo Suárez Madrid-Barajas\n Miconos\n Florencia-Peretola\n Jorge Newbery\n Mariscal Sucre\n São Paulo\n Jorge Chávez\n Ottawa\n Gustavo Rojas Pinilla\n Zaragoza\n Sauce Viejo\n Suárez Madrid-Barajas")
+
     logger.info("Se mostro el contesto la ubicacion")
     
     return UBICACION
@@ -192,7 +193,7 @@ def BuyRT_Ticket(update: Update, context: CallbackContext) -> int:
     logger.info("Iniciamos el procesos de Reservar un vuelo solo de ida")
     update.message.reply_text("****RESERVACIÓN VUELO****\n****DE IDA Y VUELTA****")
     update.message.reply_text("Para Reservar un vuelo primero dinos, ¿En que aeropuerto de los de la lista te encuentras?")
-    update.message.reply_text("José Joaquín de Olm.\nLas Américas\nToronto\nWashington Dulles\nJosé Joaquín de Olm.")
+    update.message.reply_text("Las Américas\nToronto\nWashington Dulles\nJosé Joaquín de Olmedo\n De la Ciudad de México\n El Dorado\n Ibiza\n La Chinita\n Astor Piazzolla\n Diego Aracena\n Comodoro Arturo Merino Benítez\n José María Córdova\n Sevilla-San Pablo\n Maiquetía Simón Bolívar\n Berlín-Tegel\n Tirana-Madre Teresa\n Adolfo Suárez Madrid-Barajas\n Miconos\n Florencia-Peretola\n Jorge Newbery\n Mariscal Sucre\n São Paulo\n Jorge Chávez\n Ottawa\n Gustavo Rojas Pinilla\n Zaragoza\n Sauce Viejo\n Suárez Madrid-Barajas")
     logger.info("Se mostro el contesto la ubicacion")
     
     return UBICACION
@@ -240,7 +241,7 @@ def TheId(update: Update, context: CallbackContext) -> int:
 def answerN(update: Update, context: CallbackContext) -> int:
     text = update.message.text
     logger.info(f"Obtubimos un: {text} por respuesta")
-    update.message.reply_text(f"Esta bien respondiste {text},¿Que deseas hacer ahrora?",reply_markup=markup)
+    update.message.reply_text(f"Esta bien respondiste {text},¿Qué deseas hacer ahrora?",reply_markup=markup)
 
     return CHOOSING
 
@@ -330,7 +331,7 @@ def Mostrar_Recib(update: Update, context: CallbackContext) -> int:
         Recibo = int(Recibo)
     except:
         Recibo = Recibo
-    update.message.reply_text(f"Felicidades Por Completar la compra de volesto/s para su viaje con Exito")
+    update.message.reply_text(f"Felicidades Por Completar la compra de volesto/s para su viaje con Éxito")
     if Recibo[2] == 1:
         update.message.reply_text("************* RECIBO DE IDA *************\n"f"{Recibo[0]}" "\nLista de Asientos Reservados:\n" f"{Recibo[1]}" )
     elif Recibo[2] == 1:
@@ -344,7 +345,7 @@ def done(update: Update, context: CallbackContext) -> int:
     nombre = update.message.from_user.username
 
     update.message.reply_text(
-        f"Muchas Gracias {nombre} vuelva pronto esperamos haverle servido de ayuda \n ¡¡Hasta la próxima vez!!"
+        f"Muchas Gracias {nombre} vuelva pronto esperamos haberle servido de ayuda \n ¡¡Hasta la próxima vez!!"
     )
 
     return ConversationHandler.END
@@ -513,7 +514,8 @@ def main() -> None:
 
 
     updater.idle()
-
-
 if __name__ == '__main__':
     main()
+
+
+

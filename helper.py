@@ -136,7 +136,7 @@ class gsheet_helper:
     def Buscar_ID(self, New_Avi):
         
         sheet = self.gsheet.worksheet(CLIENT_SHEET)
-        items = pd.DataFrame(sheet.get_all_records(),index=['','','','','','',''])
+        items = pd.DataFrame(sheet.get_all_records())
         items.index.name = 'Id'
         lista = pd.DataFrame(items)
         cond = lista[lista["|ID|"] == New_Avi].empty
