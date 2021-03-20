@@ -343,7 +343,7 @@ def Mostrar_Recib(update: Update, context: CallbackContext) -> int:
 
 def done(update: Update, context: CallbackContext) -> int:
     nombre = update.message.from_user.username
-
+    logger.info(f"El usuario {nombre}Ha salido del bot")
     update.message.reply_text(
         f"Muchas Gracias {nombre} vuelva pronto esperamos haberle servido de ayuda \n ¡¡Hasta la próxima vez!!"
     )
