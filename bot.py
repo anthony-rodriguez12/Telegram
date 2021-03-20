@@ -1,9 +1,11 @@
 import logging
 import numpy as np
 import time
+import os
+import sys
 
 from helper import gsheet_helper
-from cfg import TOKEN    
+from cfg import TOKEN,mode    
 
 from typing import Dict
 
@@ -25,6 +27,7 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
 
 CHOOSING, TYPING_REPLY, TYPING_CHOICE, BUSCAR, VER, RETORNO, BUY_TICKET1, BUYRT_TICKET1, UBICACION, ANSWER, ID, NOMBRE, CEDULA, FECHA, RESERVA, ASIENTOS, LISTASIENTOS, MOSTRAR = range(18)
 
@@ -509,13 +512,30 @@ def main() -> None:
 
     dispatcher.add_handler(conv_handler)
 
-    # Start the Bot
-    updater.start_polling()
+    if mode == "dev":
+        # Acceso Local (desarrollo)
+        # Start the Bot
+        updater.start_polling()
 
+        updater.idle()
 
-    updater.idle()
+    elif mode == "prod":
+        #Acceso HEROKU (producción)
+        def run(updater):
+            PORT = int(os.environ.get("PORT","8443"))
+            HEROKU_APP_NAME = os.environ.get("HEROKU_APP_NAME")
+            # Code from https://github.com/python-telegram-bot/python-telegram-bot/wiki/Webhooks#heroku
+            updater.start_webhook(Listen="0.0.0.0", port=PORT, url_parth=TOKEN)
+            updater.bot.set_webhook(f"https://{HEROKU_APP_NAME}.herokuapp.com/{TOKEN}")
+            
+    else:
+        logger.info("No se especificó el Mode.")
+        sys.exit()
+
+    run(updater)
+
 if __name__ == '__main__':
     main()
-
+    
 
 
